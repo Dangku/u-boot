@@ -59,6 +59,8 @@ static unsigned int get_hw_revision(void)
 
 	if (IS_RANGE(adc, 80, 100))	/* avg : 90 */
 		hwrev = BOARD_REVISION(2020, 10, 26);
+	else if (IS_RANGE(adc, 240, 260))  /* avg : 250 */
+		hwrev = BOARD_REVISION(2021, 01, 29);
 
 	debug("ADC=%d, hwrev=0x%x\n", adc, hwrev);
 
@@ -85,4 +87,9 @@ void board_set_dtbfile(const char *format)
 int board_is_bananapi_m5(void)
 {
 	return (board_revision() == 0x20201026);
+}
+
+int board_is_bananapi_m2_pro(void)
+{
+	return (board_revision() == 0x20210129);
 }

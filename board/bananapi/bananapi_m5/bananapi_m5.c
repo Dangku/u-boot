@@ -404,7 +404,17 @@ int board_late_init(void)
 	board_cvbs_probe();
 #endif
 
-	setenv("variant", board_is_bananapi_m5() ? "bananapi_m5" : "");
+	if (board_is_bananapi_m5()) {
+		printf("BPI: board is Bananapi M5\n");
+		setenv("variant", "bananapi_m5");
+		setenv("board", "bpi-m5");
+	}
+	else if (board_is_bananapi_m2_pro()) {
+		printf("BPI: board is Bananapi M2 Pro\n");
+		setenv("variant", "bananapi_m2_pro");
+		setenv("board", "bpi-m2pro");
+	}
+
 	board_set_dtbfile("meson64_%s.dtb");
 
 	if (get_boot_device() == BOOT_DEVICE_SPI) {

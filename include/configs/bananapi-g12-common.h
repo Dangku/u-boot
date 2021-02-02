@@ -202,17 +202,7 @@
                 "androidboot.hardware=" CONFIG_DEVICE_PRODUCT " "\
                 "recovery_part=recovery recovery_offset=0; "\
             "movi read dtbs 0 ${cramfsaddr}; " \
-            "if test " CONFIG_DEVICE_PRODUCT " = odroidn2; then " \
-                "cramfsload ${dtb_mem_addr} meson64_" CONFIG_DEVICE_PRODUCT "_android.dtb;" \
-                "cramfsload ${loadaddr} odroid${variant}-opp.dtbo;" \
-                "fdt addr ${dtb_mem_addr};" \
-                "fdt resize 8192;" \
-                "fdt apply ${loadaddr};" \
-            "else if test " CONFIG_DEVICE_PRODUCT " = bananapi_m5; then " \
                 "cramfsload ${dtb_mem_addr} meson64_${variant}_android.dtb;" \
-            "else " \
-                "cramfsload ${dtb_mem_addr} meson64_odroid${variant}_android.dtb;" \
-            "fi;fi;" \
             "movi read recovery 0 ${loadaddr}; " \
             "booti ${loadaddr} - ${dtb_mem_addr}; " \
             "bootm ${loadaddr};" \
@@ -223,17 +213,7 @@
             "androidboot.selinux=permissive androidboot.firstboot=${firstboot} jtag=disable " \
             "androidboot.hardware=" CONFIG_DEVICE_PRODUCT "; " \
 	        "movi read dtbs 0 ${cramfsaddr}; " \
-            "if test " CONFIG_DEVICE_PRODUCT " = odroidn2; then " \
-                "cramfsload ${dtb_mem_addr} meson64_" CONFIG_DEVICE_PRODUCT "_android.dtb;" \
-                "cramfsload ${loadaddr} odroid${variant}-opp.dtbo;" \
-                "fdt addr ${dtb_mem_addr};" \
-                "fdt resize 8192;" \
-                "fdt apply ${loadaddr};" \
-            "else if test " CONFIG_DEVICE_PRODUCT " = bananapi_m5; then " \
                 "cramfsload ${dtb_mem_addr} meson64_${variant}_android.dtb;" \
-            "else " \
-                "cramfsload ${dtb_mem_addr} meson64_odroid${variant}_android.dtb;" \
-            "fi;fi;" \
 	        "movi read boot 0 ${loadaddr}; " \
 	        "booti ${loadaddr} - ${dtb_mem_addr}; " \
 	        "bootm ${loadaddr}; " \
@@ -268,7 +248,7 @@
 		"sf update ${loadaddr} ${bios_offset_uboot} ${bios_sizeof_uboot}\0"\
 	"spiupdate_dtb="\
 		"sf probe; "\
-		"load mmc 1 ${loadaddr} meson64_odroidn2_spibios.dtb; "\
+		"load mmc 1 ${loadaddr} meson64_bananapi_spibios.dtb; "\
 		"sf update ${loadaddr} ${bios_offset_dtb} ${bios_sizeof_dtb}\0"\
 	"spiupdate_kernel="\
 		"sf probe; "\
