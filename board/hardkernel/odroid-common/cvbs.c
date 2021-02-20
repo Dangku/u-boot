@@ -7,7 +7,6 @@ int board_cvbs_probe()
 {
 	int i;
 	int val = 0;
-	int tmp = 0;
 	int probed;
 
 	/* no probe when HDMI is connected */
@@ -16,20 +15,14 @@ int board_cvbs_probe()
 		return 0;
 	}
 
-	for (i = 0; i < 100; i++) {
-		tmp = get_adc_value(0);
-		printf("CVBS cable tmp = %d\n", tmp);
-		val += tmp;
-	}
-	val /= i;
+	for (i = 0; i < 100; i++)
+		val += get_adc_value(0);
 
-	printf("CVBS cable loopback = 0x%X\n", val);
+	debug("CVBS cable loopback = %d\n", val);
 
-	probed = ((0x10 <= val) && (val <= 0x50));
+	probed = ((0x50 <= val) && (val <= 0xf0));
 
-	printf("set cvbscable = 0x%02X\n", probed);
 	setenv_ulong("cvbscable", probed);
 
 	return probed;
-
 }
