@@ -493,6 +493,11 @@
 #define CONFIG_SYS_I2C_SPEED			400000
 #define CONFIG_EFUSE				1
 
+#define CONFIG_EFUSE_MAC_POS		0
+#define CONFIG_EFUSE_MAC_LEN		12
+#define CONFIG_EFUSE_SN_POS			12
+#define CONFIG_EFUSE_SN_LEN			16
+
 /* commands */
 #define CONFIG_CMD_CACHE			1
 #define CONFIG_CMD_BOOTI			1

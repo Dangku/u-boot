@@ -5,6 +5,7 @@
 #include <asm-generic/gpio.h>
 #include <asm/arch/gpio.h>
 #include <linux/kernel.h>
+#include <asm/arch/efuse.h>
 
 #include <odroid-common.h>
 
@@ -65,6 +66,29 @@ static unsigned int get_hw_revision(void)
 	debug("ADC=%d, hwrev=0x%x\n", adc, hwrev);
 
 	return hwrev;
+}
+
+int get_efuse_board_serial(void)
+{
+	char buf[EFUSE_BYTES];	// sn address buffer
+	uint32_t size = CONFIG_EFUSE_SN_LEN;
+	loff_t pos = CONFIG_EFUSE_SN_POS;	// offset of the first byte for sn address
+	int ret;
+
+	memset(buf, 0, sizeof(buf));
+
+	ret = efuse_read_usr(buf, size, &pos);
+	if (ret < 0) {
+		memset(buf, 0, sizeof(buf));
+		error("read serial from efuse failed\n");
+		return -EINVAL;
+	}
+
+	printf("BPI: (from efuse)set serial to: %s\n", buf);
+
+	setenv("serial", buf);
+
+	return 0;
 }
 
 int board_revision(void)

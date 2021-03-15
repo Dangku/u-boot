@@ -19,6 +19,7 @@
 #include <asm/arch/io.h>
 #include <asm/arch/secure_apb.h>
 #endif
+#include <asm/arch/efuse.h>
 
 void eth_parse_enetaddr(const char *addr, uchar *enetaddr)
 {
@@ -186,15 +187,14 @@ static inline void eth_hw_addr_random(struct eth_device *dev)
 }
 #endif
 
-#if !defined(CONFIG_AML_G12A_COMMON)
-static int eth_get_efuse_mac(struct eth_device *dev)
+static int eth_get_unify_mac(struct eth_device *dev)
 {
 #ifndef CONFIG_UNIFY_KEY_MANAGE
        printf("\nWarning: %s MAC addresses is not from dtb\n",
                                                dev->name);
 	   return -1;
 #else
-#define MAC_MAX_LEN	17
+	#define MAC_MAX_LEN	17
 	int i = 0;
 	int err = 0, exist = 0;
 	ssize_t keysize = 0;
@@ -229,13 +229,11 @@ static int eth_get_efuse_mac(struct eth_device *dev)
 	return key_unify_uninit();
 #endif
 }
-#else
-#include <asm/arch/efuse.h>
 
 static int eth_get_efuse_mac(struct eth_device *dev)
 {
-	char buf[6 * 2];	// MAC address buffer
-	loff_t pos = 0x14;	// offset of the first byte for MAC address
+	char buf[CONFIG_EFUSE_MAC_LEN];	// MAC address buffer
+	loff_t pos = CONFIG_EFUSE_MAC_POS;	// offset of the first byte for MAC address
 	int ret;
 
 	ret = efuse_read_usr(buf, sizeof(buf), &pos);
@@ -243,6 +241,8 @@ static int eth_get_efuse_mac(struct eth_device *dev)
 		memset(buf, 0, sizeof(buf));
 		return -EINVAL;
 	}
+
+	printf("\nBPI: (from efuse)set mac to: %s\n", buf);
 
 	int i;
 	char s[3];
@@ -256,16 +256,17 @@ static int eth_get_efuse_mac(struct eth_device *dev)
 
 	return 0;
 }
-#endif
 
 int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 		   int eth_number)
 {
 	unsigned char env_enetaddr[6];
 	int ret = 0;
-	eth_get_efuse_mac(dev);
-
-	if (is_valid_ether_addr(dev->enetaddr)) {
+	
+	if (!eth_get_efuse_mac(dev) && is_valid_ether_addr(dev->enetaddr)) {
+		eth_setenv_enetaddr_by_index(base_name, eth_number,
+						dev->enetaddr);
+	} else if (!eth_get_unify_mac(dev) && is_valid_ether_addr(dev->enetaddr)) {
 		eth_setenv_enetaddr_by_index(base_name, eth_number,
 					     dev->enetaddr);
 	} else {

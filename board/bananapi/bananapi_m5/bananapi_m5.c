@@ -493,6 +493,7 @@ int board_late_init(void)
 	}
 
 	board_set_dtbfile("meson64_%s.dtb");
+	get_efuse_board_serial();
 
 	if (get_boot_device() == BOOT_DEVICE_SPI) {
 		setenv("bootdelay", "0");
