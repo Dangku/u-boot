@@ -27,4 +27,11 @@
 #undef  CONFIG_VDDEE_INIT_VOLTAGE
 #define CONFIG_VDDEE_INIT_VOLTAGE		880	/* VDDEE power up voltage */
 
+/* only one i2c master initial?? */
+//#define CONFIG_SYS_I2C_AML_I2C1
+#define CONFIG_SYS_I2C_AML_I2C2
+//#define CONFIG_SYS_I2C_AML_I2C3
+
+
+
 #endif

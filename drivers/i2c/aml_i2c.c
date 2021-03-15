@@ -34,7 +34,7 @@
 
 #include <aml_i2c.h>
 
-#define HAS_AO_MODULE
+//#define HAS_AO_MODULE
 #define AML_I2C_CTRL_CLK_DELAY_MASK    (0x3FF)
 #define AML_I2C_SLAVE_ADDR_MASK        (0xFF)
 #define AML_I2C_SLAVE_ADDR_MASK_7BIT   (0x7F)
@@ -91,9 +91,13 @@ static void aml_i2c_set_clk(struct aml_i2c *i2c)
 #if 1
 	i2c_clock_set >>= 1;
 	ctrl = (struct aml_i2c_reg_ctrl*)&(i2c->master_regs->i2c_ctrl);
-	if (i2c_clock_set > 0xfff) i2c_clock_set = 0xfff;
+	
+	if (i2c_clock_set > 0xfff) 
+		i2c_clock_set = 0xfff;
+	
 	ctrl->clk_delay = i2c_clock_set & 0x3ff;
 	ctrl->clk_delay_ext = i2c_clock_set >> 10;
+	
 	i2c->master_regs->i2c_slave_addr &= ~(0xfff<<16);
 	i2c->master_regs->i2c_slave_addr |= (i2c_clock_set>>1)<<16;
 	i2c->master_regs->i2c_slave_addr |= 1<<28;
@@ -208,6 +212,18 @@ static void aml_i2c_dbg(struct aml_i2c *i2c)
 	printf( "ctrl.ack_ignore  0x%x\n", ctrl->ack_ignore);
 	printf( "ctrl.start  0x%x\n", ctrl->start);
 
+	printf( "master pinmux\n");
+	unsigned int scl_pinmux;
+	unsigned int sda_pinmux;
+
+	scl_pinmux = readl(i2c->master_pinmux.scl_reg);
+	sda_pinmux = readl(i2c->master_pinmux.sda_reg);
+	
+	printf( "scl_reg:  0x%lx, val:  0x%x\n", i2c->master_pinmux.scl_reg, scl_pinmux);
+	printf( "scl_bit:  0x%x\n", i2c->master_pinmux.scl_bit);
+	printf( "sda_reg:  0x%lx, val:  0x%x\n", i2c->master_pinmux.sda_reg, sda_pinmux);
+	printf( "sda_bit:  0x%x\n", i2c->master_pinmux.sda_bit);
+
 }
 
 static void aml_i2c_clear_token_list(struct aml_i2c *i2c)
@@ -277,32 +293,32 @@ static int aml_i2c_wait_ack(struct aml_i2c *i2c)
 }
 
 static void aml_i2c_get_read_data(struct aml_i2c *i2c, unsigned char *buf,
-														size_t len)
+				  size_t len)
 {
 	AML_I2C_DBG(1, "FILE:%s:%d, FUNC:%s\n", __FILE__,__LINE__,__func__);
 	int i;
 	unsigned long rdata0 = i2c->master_regs->i2c_token_rdata_0;
 	unsigned long rdata1 = i2c->master_regs->i2c_token_rdata_1;
 
-	for (i=0; i< min_t(size_t, len, AML_I2C_MAX_TOKENS>>1); i++)
+	for (i = 0; i< min_t(size_t, len, AML_I2C_MAX_TOKENS>>1); i++)
 		*buf++ = (rdata0 >> (i*8)) & 0xff;
 
-	for (; i< min_t(size_t, len, AML_I2C_MAX_TOKENS); i++)
+	for (i = 4; i< min_t(size_t, len, AML_I2C_MAX_TOKENS); i++)
 		*buf++ = (rdata1 >> ((i - (AML_I2C_MAX_TOKENS>>1))*8)) & 0xff;
 }
 
 static void aml_i2c_fill_data(struct aml_i2c *i2c, unsigned char *buf,
-							size_t len)
+			      size_t len)
 {
 	AML_I2C_DBG(1, "FILE:%s:%d, FUNC:%s\n", __FILE__,__LINE__,__func__);
 	int i;
 	unsigned int wdata0 = 0;
 	unsigned int wdata1 = 0;
 
-	for (i=0; i< min_t(size_t, len, AML_I2C_MAX_TOKENS>>1); i++)
+	for (i = 0; i< min_t(size_t, len, AML_I2C_MAX_TOKENS>>1); i++)
 		wdata0 |= (*buf++) << (i*8);
 
-	for (; i< min_t(size_t, len, AML_I2C_MAX_TOKENS); i++)
+	for (i = 4; i< min_t(size_t, len, AML_I2C_MAX_TOKENS); i++)
 		wdata1 |= (*buf++) << ((i - (AML_I2C_MAX_TOKENS>>1))*8);
 
 	i2c->master_regs->i2c_token_wdata_0 = wdata0;
@@ -643,7 +659,7 @@ static const unsigned long g_aml_i2c_reg_start[] = {
 	[2] = MESON_I2C_MASTER_B_START,/*master b*/
 	[3] = MESON_I2C_MASTER_C_START,/*master b*/
 	[4] = MESON_I2C_MASTER_D_START,/*master b*/
-	//    [2] = MESON_I2C_SLAVE_START,/*slave*/
+	//[2] = MESON_I2C_SLAVE_START,/*slave*/
 
 #ifdef HAS_AO_MODULE
 	[3] = MESON_I2C_MASTER_AO_START,/*master ao*/
@@ -954,6 +970,14 @@ void i2c_init(int speed, int slaveaddr)
 		g_cur_bus_num = 0;
 	}
 	aml_i2c_init();
+}
+
+void i2c_plat_init(void)
+{
+	if (g_i2c_ports == NULL) {
+		g_i2c_ports = &g_aml_i2c_plat;
+		g_cur_bus_num = 0;
+	}
 }
 
 
