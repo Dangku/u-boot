@@ -459,6 +459,7 @@ int clk_msr(int index)
 		is_g12a = true;
 	} else if (get_cpu_id().family_id == MESON_CPU_MAJOR_ID_SM1)
 		index_total = sizeof(clk_table) / sizeof(char *);
+	
 	if (index == 0xff) {
 		for (i = 0; i < index_total; i++)
 			printf("[%4d][%4ld MHz] %s\n", i, clk_util_clk_msr(i),
@@ -690,4 +691,39 @@ int spicc1_clk_enable(bool enable)
 
 	return 0;
 }
+
+int spicc0_clk_set_rate(int rate)
+{
+	u32 regv;
+	u8 mux, div = 0;
+
+	for (mux = 0; mux < ARRAY_SIZE(spicc_clk_rate); mux++)
+		if (rate == spicc_clk_rate[mux])
+			break;
+	if (mux == ARRAY_SIZE(spicc_clk_rate))
+		return -EINVAL;
+
+	regv = readl(P_HHI_SPICC_CLK_CNTL);
+	/* mux[9:7], gate[6], div[5:0] */
+	regv &= ~((0x7 << 7) | (1 << 6) | (0x3f << 0));
+	regv |= (mux << 7) | (1 << 6) | (div << 0);
+	writel(regv, P_HHI_SPICC_CLK_CNTL);
+
+	return 0;
+}
+
+int spicc0_clk_enable(bool enable)
+{
+	u32 regv;
+
+	regv = readl(P_HHI_GCLK_MPEG0);
+	if (enable)
+		regv |= 1 << 8;
+	else
+		regv &= ~(1 << 8);
+	writel(regv, P_HHI_GCLK_MPEG0);
+
+	return 0;
+}
+
 #endif /* CONFIG_AML_SPICC */

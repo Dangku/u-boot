@@ -360,7 +360,7 @@
 
 /* meson SPI */
 #define CONFIG_AML_SPIFC
-/* #define CONFIG_AML_SPICC */
+#define CONFIG_AML_SPICC
 #if defined CONFIG_AML_SPIFC || defined CONFIG_AML_SPICC
 	#define CONFIG_OF_SPI
 	#define CONFIG_DM_SPI
@@ -371,6 +371,7 @@
 	#define CONFIG_SPI_FLASH
 	/* max speed is 50MHz based on S905D2 SPIFC timing spec */
 	#define CONFIG_SF_DEFAULT_SPEED		50000000
+	#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 	#define CONFIG_DM_SPI_FLASH
 	#define CONFIG_CMD_SF
 	/* SPI flash surpport list */
@@ -398,7 +399,7 @@
 #endif
 #endif
 
-#if defined defined CONFIG_SPI_NAND
+#if defined(CONFIG_SPI_NAND)
 	#define CONFIG_MTD_DEVICE y
 	#define CONFIG_RBTREE
 	#define CONFIG_CMD_MTDPARTS		1
