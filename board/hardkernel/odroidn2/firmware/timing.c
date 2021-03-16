@@ -57,25 +57,7 @@
  *
  */
 
-
-/* ddr configs */
-#define DDR_RFC_TYPE_DDR3_512Mbx1				0
-#define DDR_RFC_TYPE_DDR3_512Mbx2				1
-#define DDR_RFC_TYPE_DDR3_512Mbx4				2
-#define DDR_RFC_TYPE_DDR3_512Mbx8				3
-#define DDR_RFC_TYPE_DDR3_512Mbx16				4
-#define DDR_RFC_TYPE_DDR4_2Gbx1					5
-#define DDR_RFC_TYPE_DDR4_2Gbx2					6
-#define DDR_RFC_TYPE_DDR4_2Gbx4					7
-#define DDR_RFC_TYPE_DDR4_2Gbx8					8
-
-#define DDR_RFC_TYPE_LPDDR4_2Gbx1				9
-#define DDR_RFC_TYPE_LPDDR4_3Gbx1				10
-#define DDR_RFC_TYPE_LPDDR4_4Gbx1				11
-
-#define CONFIG_DDR4_DEFAULT_CLK		1320
-
-ddr_set_t __ddr_setting[] = {
+ddr_set_t __ddr_setting[] __attribute__ ((section(".ddr_settings"))) = {
 {
 	/* odroid-n2 ddr4 : (4Gbitx2)x2, (8Gbitx2)x2 */
 	.board_id			= CONFIG_BOARD_ID_MASK,
@@ -83,12 +65,12 @@ ddr_set_t __ddr_setting[] = {
 	.dram_rank_config		= CONFIG_DDR0_32BIT_RANK01_CH0, /* bus width 32bit, use cs0 cs1 */
 	.DramType			= CONFIG_DDR_TYPE_DDR4,
 	/* 912 (DDR4-1866) / 1056 (DDR4-2133) / 1200 (DDR4-2400)/ 1320 (DDR4-2666) */
-	.DRAMFreq			= {CONFIG_DDR4_DEFAULT_CLK, 0, 0, 0},
+	.DRAMFreq			= {1320, 0, 0, 0},
 	.ddr_rfc_type			= DDR_RFC_TYPE_DDR4_2Gbx8,
 	.ddr_base_addr			= CFG_DDR_BASE_ADDR,
 	.ddr_start_offset		= CFG_DDR_START_OFFSET,
-	.imem_load_addr			= 0xFFFC0000,
-	.dmem_load_size			= 0x1000,
+	//.imem_load_addr			= 0xFFFC0000,
+	//.dmem_load_size			= 0x1000,
 
 	.DisabledDbyte			= 0xf0,
 	.Is2Ttiming			= 1,
@@ -141,12 +123,12 @@ ddr_set_t __ddr_setting[] = {
 	.dram_rank_config		= CONFIG_DDR0_32BIT_RANK0_CH0, /* bus width 32bit, use cs0 only */
 	.DramType			= CONFIG_DDR_TYPE_DDR4,
 	/* 912 (DDR4-1866) / 1056 (DDR4-2133) / 1200 (DDR4-2400)/ 1320 (DDR4-2666) */
-	.DRAMFreq			= {CONFIG_DDR4_DEFAULT_CLK, 0, 0, 0},
+	.DRAMFreq				= {1320, 0, 0, 0},
 	.ddr_rfc_type			= DDR_RFC_TYPE_DDR4_2Gbx8,
 	.ddr_base_addr			= CFG_DDR_BASE_ADDR,
 	.ddr_start_offset		= CFG_DDR_START_OFFSET,
-	.imem_load_addr			= 0xFFFC0000,
-	.dmem_load_size			= 0x1000,
+	//.imem_load_addr			= 0xFFFC0000,
+	//.dmem_load_size			= 0x1000,
 
 	.DisabledDbyte			= 0xf0,
 	.Is2Ttiming			= 1,

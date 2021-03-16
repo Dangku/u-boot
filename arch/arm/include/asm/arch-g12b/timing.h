@@ -71,10 +71,54 @@ typedef struct ddr_reg {
 	unsigned char	rsv_0;
 }__attribute__ ((packed)) ddr_reg_t;
 
+typedef struct training_delay_set_ps{
+	unsigned	char	ac_trace_delay[10];
+	unsigned	char	ac_trace_delay_rev[2];
+	unsigned	char	read_dqs_delay[16];
+	unsigned	char	read_dq_bit_delay[72];
+	unsigned	short	write_dqs_delay[16];
+//	*/
+	unsigned	short	write_dq_bit_delay[72];
+	unsigned	short	read_dqs_gate_delay[16];
+	unsigned	char	soc_bit_vref[36];
+	unsigned	char	dram_bit_vref[32];
+	///*
+	unsigned	char	rever1;//read_dqs  read_dq,write_dqs, write_dq
+	unsigned	char	dfi_mrl;
+	unsigned	char	dfi_hwtmrl;
+	unsigned	char	ARdPtrInitVal;
+	unsigned	short	csr_vrefinglobal;
+	unsigned	short	csr_dqsrcvcntrl[4];
+	unsigned	short	csr_pptdqscntinvtrntg0[4];
+	unsigned	short	csr_pptdqscntinvtrntg1[4];
+	unsigned	short	csr_seq0bgpr[9];
+	unsigned	short	csr_dllgainctl;
+	unsigned	short	csr_dlllockpara;
+//	unsigned	short	rever2;
+}__attribute__ ((packed)) training_delay_set_ps_t;
+typedef struct ddr_phy_common_extra_set{
+	unsigned	short	csr_pllctrl3;
+	unsigned	short	csr_pptctlstatic[4];
+	unsigned	short	csr_trainingincdecdtsmen[4];
+	unsigned	short	csr_tsmbyte0[4];
+	unsigned	short	csr_hwtcamode;
+	unsigned	short	csr_hwtlpcsena;
+	unsigned	short	csr_hwtlpcsenb;
+	unsigned	short	csr_acsmctrl13;
+	unsigned	short	csr_acsmctrl23;
+	unsigned	char	csr_soc_vref_dac1_dfe[36];
+}__attribute__ ((packed)) ddr_phy_common_extra_set_t;
+
+typedef struct retraining_set{
+	ddr_phy_common_extra_set_t cfg_ddr_phy_common_extra_set_t;
+	training_delay_set_ps_t	cfg_ddr_training_delay_ps;
+}__attribute__ ((packed)) retraining_set_t;
+
 typedef struct ddr_set{
 	unsigned	int		magic;
 	unsigned	char	fast_boot[4];// 0   fastboot enable  1 window test margin  2 auto offset after window test 3 auto window test
 	//unsigned	int		rsv_int0;
+	unsigned	int		ddr_func;
 	unsigned	char	board_id;
 	//board id reserve,,do not modify
 	unsigned	char	version;
@@ -110,12 +154,19 @@ typedef struct ddr_set{
 	/* rsv_char0. update for diagnose type define */
 	unsigned	char	diagnose;
 
+	unsigned	short	soc_data_drv_ohm_ps1;
+	unsigned	short	dram_data_drv_ohm_ps1;
+	unsigned	short	soc_data_odt_ohm_ps1;
+	unsigned	short	dram_data_odt_ohm_ps1;
+	unsigned	short	dram_data_wr_odt_ohm_ps1;
+	#if 0
 	/* imem/dmem define */
 	unsigned	int		imem_load_addr;
 	//system reserve,do not modify
 	unsigned	int		dmem_load_addr;
 	//system reserve,do not modify
 	unsigned	short	imem_load_size;
+	#endif
 	//system reserve,do not modify
 	unsigned	short	dmem_load_size;
 	//system reserve,do not modify
@@ -133,8 +184,9 @@ typedef struct ddr_set{
 	unsigned	short	training_SequenceCtrl[2];
 	//system reserve,do not modify
 	unsigned	char	phy_odt_config_rank[2];
-	unsigned	char	 rever1;
-	unsigned	char	 rever2;
+	//unsigned	char	 rever1;
+	//unsigned	char	 rever2;
+	unsigned	short	rank1_ca_vref_permil;
 	//training odt config ,only use for training
 	// [0]Odt pattern for accesses targeting rank 0. [3:0] is used for write ODT [7:4] is used for read ODT
 	// [1]Odt pattern for accesses targeting rank 1. [3:0] is used for write ODT [7:4] is used for read ODT
@@ -224,58 +276,40 @@ typedef struct ddr_set{
 	//soc init DRAM receiver vref ,config like 500 means 0.5VDDQ,take care ,please follow SI
 	unsigned	short	max_core_timmming_frequency;
 	//use for limited ddr speed core timmming parameter,for some old dram maybe have no over speed register
+	/* align8 */
 
 	unsigned	char	ac_trace_delay[10];
 	unsigned	char	lpddr4_dram_vout_voltage_1_3_2_5_setting;
-	//use for lpddr4 read vout voltage  setting 0 --->2/5VDDQ ,1--->1/3VDDQ
 	unsigned	char	lpddr4_x8_mode;
-	//system reserve,do not modify ,take care ,please follow SI
-	unsigned	char	ac_pinmux[DWC_AC_PINMUX_TOTAL];
-	//use for lpddr3 /lpddr4 ca pinmux remap
-	unsigned	char	dfi_pinmux[DWC_DFI_PINMUX_TOTAL];
-	unsigned	char	slt_test_function[2];  //[0] slt test function enable,bit 0 enable 4 frequency scan,bit 1 enable force delay line offset ,[1],slt test parameter ,use for force delay line offset
-		//system reserve,do not modify
+	unsigned	char	slt_test_function[2];  //[0] slt test function enable,bit 0 enable 4 frequency scan,bit 1 enable force delay line offset ,bit 7 enable skip training function
+	//[1],slt test parameter ,use for force delay line offset
+	//system reserve,do not modify
 	unsigned	short	tdqs2dq;
-	unsigned	char  dram_data_wr_odt_ohm;
+	unsigned	char	dram_data_wr_odt_ohm;
 	unsigned	char	bitTimeControl_2d;
 	//system reserve,do not modify
 	/* align8 */
-
+    unsigned	char	char_rev1;
+	unsigned	char	training_offset;//char_rev2;
 	unsigned	int		ddr_dmc_remap[5];
+	unsigned	int		dram_rtt_nom_wr_park[2];
 	//system reserve,do not modify
 	/* align8 */
-	unsigned char		ddr_lpddr34_ca_remap[4];
+	unsigned	char	ddr_lpddr34_ca_remap[4];
 	////use for lpddr3 /lpddr4 ca training data byte lane remap
 	unsigned	char	ddr_lpddr34_dq_remap[32];
 	////use for lpddr3 /lpddr4 ca pinmux remap
-	unsigned	int		dram_rtt_nom_wr_park[2];
-	//system reserve,do not modify
-	unsigned	int		ddr_func;
-	//system reserve,do not modify
-	/* align8 */
+	unsigned	char	ac_pinmux[DWC_AC_PINMUX_TOTAL];
+	//use for lpddr3 /lpddr4 ca pinmux remap
+	unsigned	char	dfi_pinmux[DWC_DFI_PINMUX_TOTAL];
+	unsigned	char	char_rev3;
+	unsigned	char	char_rev4;
+	ddr_phy_common_extra_set_t cfg_ddr_phy_common_extra_set_t;
+	training_delay_set_ps_t	cfg_ddr_training_delay_ps[2];
 
-	//unsigned	long	rsv_long0[2];
-	/* v1 end */
-	//unsigned	char	read_dqs_adjust[16]; //rank 0 --lane 0 1 2 3  rank 1--4 5 6 7 write  //rank 0 --lane 0 1 2 3  rank 1--4 5 6 7 read
-	//unsigned	char	read_dq_bit_delay[72];
-	//unsigned	char	write_dq_bit_delay[72];
-
-	unsigned	char	read_dqs_delay[16];
-	unsigned	char	read_dq_bit_delay[72];
-	unsigned	short	write_dqs_delay[16];
-//*/
-	unsigned	short	write_dq_bit_delay[72];
-	unsigned	short	read_dqs_gate_delay[16];
-	unsigned	char	soc_bit_vref[32];
-	unsigned	char	dram_bit_vref[32];
-//		/*
-	unsigned	char	rever3;//read_dqs  read_dq,write_dqs, write_dq
-	unsigned	char	dfi_mrl;
-	unsigned	char	dfi_hwtmrl;
-	unsigned	char	ARdPtrInitVal;
-	unsigned	char	retraining[16];
 	//override read bit delay
 }__attribute__ ((packed)) ddr_set_t;
+
 
 typedef struct pll_set{
 	unsigned short    cpu_clk;

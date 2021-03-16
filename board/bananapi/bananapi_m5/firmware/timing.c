@@ -1,6 +1,6 @@
 
 /*
- * board/amlogic/txl_skt_v1/firmware/timing.c
+ * board/bananapi/bananapi_m5/firmware/timing.c
  *
  * Copyright (C) 2015 Amlogic, Inc. All rights reserved.
  *
