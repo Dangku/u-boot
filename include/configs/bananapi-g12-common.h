@@ -492,18 +492,59 @@
 /* other devices */
 #define CONFIG_SYS_I2C_AML			1
 #define CONFIG_SYS_I2C_SPEED			400000
-#define CONFIG_EFUSE				1
 
+/*#define CONFIG_EFUSE				1*/
+#if defined(CONFIG_EFUSE)
+#define CONFIG_EFUSE_MAC			1
+#define CONFIG_EFUSE_SN				1
+#endif
+
+#if defined(CONFIG_EFUSE_MAC)
 #define CONFIG_EFUSE_MAC_POS		0
 #define CONFIG_EFUSE_MAC_LEN		12
+#endif
+#if defined(CONFIG_EFUSE_SN)
 #define CONFIG_EFUSE_SN_POS			12
 #define CONFIG_EFUSE_SN_LEN			16
+#endif
+
+#define CONFIG_I2C_EEPROM			1
+#if defined(CONFIG_I2C_EEPROM)
+#define CONFIG_I2C_EEPROM_ADDR		0x50
+#define CONFIG_I2C_EEPROM_MAC		1
+#define CONFIG_I2C_EEPROM_SN		1
+#endif
+
+#if defined(CONFIG_I2C_EEPROM_MAC)
+#define CONFIG_I2C_EEPROM_MAC_POS	0
+#define CONFIG_I2C_EEPROM_MAC_LEN	12
+#endif
+#if defined(CONFIG_I2C_EEPROM_MAC)
+#define CONFIG_I2C_EEPROM_SN_POS	16
+#define CONFIG_I2C_EEPROM_SN_LEN	16
+#endif
+
+#if defined(CONFIG_AML_SPICC)
+#define CONFIG_SPI_EEPROM_MAC		1
+#define CONFIG_SPI_EEPROM_SN		1
+#endif
+
+#if defined(CONFIG_SPI_EEPROM_MAC)
+#define CONFIG_SPI_EEPROM_MAC_POS	0
+#define CONFIG_SPI_EEPROM_MAC_LEN	12
+#endif
+#if defined(CONFIG_SPI_EEPROM_SN)
+#define CONFIG_SPI_EEPROM_SN_POS	16
+#define CONFIG_SPI_EEPROM_SN_LEN	16
+#endif
 
 /* commands */
 #define CONFIG_CMD_CACHE			1
 #define CONFIG_CMD_BOOTI			1
 #define CONFIG_CMD_BOOTM			1
+#if defined(CONFIG_EFUSE)
 #define CONFIG_CMD_EFUSE			1
+#endif
 #define CONFIG_CMD_I2C				1
 #define CONFIG_CMD_MEMORY			1
 #define CONFIG_CMD_FAT				1
@@ -518,6 +559,8 @@
 #define CONFIG_CMD_MISC				1
 #define CONFIG_CMD_BDI				1
 #define CONFIG_CMD_FS_GENERIC			1
+#define CONFIG_CMD_CHIPID			1
+
 
 /*file system*/
 #define CONFIG_DOS_PARTITION			1

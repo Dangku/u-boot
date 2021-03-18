@@ -6,6 +6,7 @@
 #include <asm/arch/gpio.h>
 #include <linux/kernel.h>
 #include <asm/arch/efuse.h>
+#include <i2c.h>
 
 #include <odroid-common.h>
 
@@ -68,6 +69,30 @@ static unsigned int get_hw_revision(void)
 	return hwrev;
 }
 
+#if defined(CONFIG_I2C_EEPROM_SN)
+int get_i2c_eeprom_board_serial(void)
+{
+	char buf[32];	// sn address buffer
+	int ret;
+
+	memset(buf, 0, sizeof(buf));
+
+	ret = i2c_read(CONFIG_I2C_EEPROM_ADDR, CONFIG_I2C_EEPROM_SN_POS, 1, (uchar*)buf, CONFIG_I2C_EEPROM_SN_LEN);
+    if (ret) {
+        printf("Error reading the i2c eeprom: %d\n",ret);
+		memset(buf, 0, sizeof(buf));
+		return -EINVAL; 
+    }
+
+	printf("BPI: (from i2c eeprom)serial: %s\n", buf);
+
+	setenv("serial", buf);
+	
+	return 0;
+}
+#endif
+
+#if defined(CONFIG_EFUSE_SN)
 int get_efuse_board_serial(void)
 {
 	char buf[EFUSE_BYTES];	// sn address buffer
@@ -90,6 +115,7 @@ int get_efuse_board_serial(void)
 
 	return 0;
 }
+#endif
 
 int board_revision(void)
 {

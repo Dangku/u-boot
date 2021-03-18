@@ -14,12 +14,12 @@
 #include <amlogic/keyunify.h>
 #include <net.h>
 #include <asm/cpu_id.h>
-#include <amlogic/keyunify.h>
 #ifdef CONFIG_RANDOM_ETHADDR
 #include <asm/arch/io.h>
 #include <asm/arch/secure_apb.h>
 #endif
 #include <asm/arch/efuse.h>
+#include <i2c.h>
 
 void eth_parse_enetaddr(const char *addr, uchar *enetaddr)
 {
@@ -187,62 +187,20 @@ static inline void eth_hw_addr_random(struct eth_device *dev)
 }
 #endif
 
-static int eth_get_unify_mac(struct eth_device *dev)
+#if defined(CONFIG_I2C_EEPROM_MAC)
+static inline int eth_get_i2c_eeprom_mac(struct eth_device *dev)
 {
-#ifndef CONFIG_UNIFY_KEY_MANAGE
-       printf("\nWarning: %s MAC addresses is not from dtb\n",
-                                               dev->name);
-	   return -1;
-#else
-	#define MAC_MAX_LEN	17
-	int i = 0;
-	int err = 0, exist = 0;
-	ssize_t keysize = 0;
-	const char* seedNum = "0x1234";
-	unsigned char buf[MAC_MAX_LEN+1] = {0};
-
-	err = key_unify_init(seedNum, NULL);
-	if (err)
-		return err;
-
-	err = key_unify_query_exist("mac", &exist);
-	if (err || (!exist))
-		return -EEXIST;
-
-	err = key_unify_query_size("mac", &keysize);
-	if (err)
-		return err;
-
-	if (keysize != MAC_MAX_LEN) {
-		return -EINVAL;
-	}
-
-	err = key_unify_read("mac", buf, keysize);
-	if (err)
-		return err;
-
-	for (i=0; i<6; i++) {
-		buf[i*3 + 2] = '\0';
-		dev->enetaddr[i] = simple_strtoul((char *)&buf[i*3], NULL, 16);
-	}
-
-	return key_unify_uninit();
-#endif
-}
-
-static int eth_get_efuse_mac(struct eth_device *dev)
-{
-	char buf[CONFIG_EFUSE_MAC_LEN];	// MAC address buffer
-	loff_t pos = CONFIG_EFUSE_MAC_POS;	// offset of the first byte for MAC address
+	char buf[CONFIG_I2C_EEPROM_MAC_LEN];
 	int ret;
 
-	ret = efuse_read_usr(buf, sizeof(buf), &pos);
-	if (ret < 0) {
+	ret = i2c_read(CONFIG_I2C_EEPROM_ADDR, CONFIG_I2C_EEPROM_MAC_POS, 1, (uchar*)buf, CONFIG_I2C_EEPROM_MAC_LEN);
+    if (ret) {
+        printf("Error reading the i2c eeprom: %d\n",ret);
 		memset(buf, 0, sizeof(buf));
-		return -EINVAL;
-	}
+		return -EINVAL; 
+    }
 
-	printf("\nBPI: (from efuse)set mac to: %s\n", buf);
+	printf("\nBPI: (from i2c eeprom) mac: %s\n", buf);
 
 	int i;
 	char s[3];
@@ -256,19 +214,52 @@ static int eth_get_efuse_mac(struct eth_device *dev)
 
 	return 0;
 }
+#endif
+
+#if defined(CONFIG_EFUSE_MAC)
+static inline int eth_get_efuse_mac(struct eth_device *dev)
+{
+	char buf[CONFIG_EFUSE_MAC_LEN];	// MAC address buffer
+	loff_t pos = CONFIG_EFUSE_MAC_POS;	// offset of the first byte for MAC address
+	int ret;
+
+	ret = efuse_read_usr(buf, sizeof(buf), &pos);
+	if (ret < 0) {
+		memset(buf, 0, sizeof(buf));
+		return -EINVAL;
+	}
+
+	printf("\nBPI: (from efuse)mac: %s\n", buf);
+
+	int i;
+	char s[3];
+	char *p = buf;
+	for (i = 0; i < 6; i++) {
+		s[0] = *p++;
+		s[1] = *p++;
+		s[2] = 0;
+		dev->enetaddr[i] = simple_strtoul(s, NULL, 16);
+	}
+
+	return 0;
+}
+#endif
 
 int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 		   int eth_number)
 {
 	unsigned char env_enetaddr[6];
 	int ret = 0;
-	
-	if (!eth_get_efuse_mac(dev) && is_valid_ether_addr(dev->enetaddr)) {
+
+#if defined(CONFIG_I2C_EEPROM_MAC)
+	eth_get_i2c_eeprom_mac(dev);
+#elif defined(CONFIG_EFUSE_MAC)
+	eth_get_efuse_mac(dev);
+#endif
+
+	if (is_valid_ether_addr(dev->enetaddr)) {
 		eth_setenv_enetaddr_by_index(base_name, eth_number,
 						dev->enetaddr);
-	} else if (!eth_get_unify_mac(dev) && is_valid_ether_addr(dev->enetaddr)) {
-		eth_setenv_enetaddr_by_index(base_name, eth_number,
-					     dev->enetaddr);
 	} else {
 		eth_getenv_enetaddr_by_index(base_name, eth_number, env_enetaddr);
 		if(env_enetaddr[0] == 0x0 && env_enetaddr[1] == 0x15 && env_enetaddr[2] == 0x18
@@ -280,11 +271,13 @@ int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 				dev->enetaddr);
 #endif
 		}
+
+		/* random mac from chipid */
 		uint8_t buff[16];
 		if (get_chip_id(&buff[0], sizeof(buff)) == 0) {
 			sprintf((char *)env_enetaddr,"02:%02x:%02x:%02x:%02x:%02x",buff[8],
 				buff[7],buff[6],buff[5],buff[4]);
-			printf("MACADDR:%s(from chipid)\n",env_enetaddr);
+			printf("\nBPI: (from chipid)mac: %s\n", env_enetaddr);
 			setenv("ethaddr",(const char *)env_enetaddr);
 		}
 

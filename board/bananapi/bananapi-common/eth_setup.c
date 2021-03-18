@@ -65,11 +65,6 @@ static unsigned char chartonum(char c)
         return 0;
 }
 
-void get_mac_i2c_eeprom(void)
-{
-
-}
-
 void get_mac_spi_eeprom(void)
 {
 

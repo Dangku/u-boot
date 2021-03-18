@@ -255,6 +255,7 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	defendkey_process();
 #endif
 
+#if defined(CONFIG_EFUSE)
 	if (IS_FEAT_BOOT_VERIFY())
 	{
 		/* Override load address argument to skip secure boot header (512).
@@ -273,6 +274,7 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		argc = 1;
 		argv = (char**)&argv_new;
 	}
+#endif
 
 	ee_gate_off();
 	nRet = do_bootm_states(cmdtp, flag, argc, argv, BOOTM_STATE_START |

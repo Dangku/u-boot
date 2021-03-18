@@ -238,10 +238,13 @@ int check_valid_dts(unsigned char *buffer)
 {
 	int ret = -__LINE__;
 	char *dt_addr;
+
+#if defined(CONFIG_EFUSE)
 	/* fixme, a work around way */
 	unsigned char *sbuffer = (unsigned char *)getenv_hex("loadaddr", CONFIG_DTB_MEM_ADDR + 0x100000);
 	/* g12a merge to trunk, use trunk code */
 	//unsigned char *sbuffer = (unsigned char *)0x1000000;
+
 	if (IS_FEAT_BOOT_VERIFY()) {
 
 		memcpy(sbuffer, buffer, AML_DTB_IMG_MAX_SZ);
@@ -261,6 +264,8 @@ int check_valid_dts(unsigned char *buffer)
 		memcpy(buffer, sbuffer + nCheckOffset, AML_DTB_IMG_MAX_SZ);
 
 	}
+#endif
+
 #ifdef CONFIG_MULTI_DTB
 	dt_addr = (char *)get_multi_dt_entry((unsigned long)buffer);
 #else

@@ -32,6 +32,4 @@
 #define CONFIG_SYS_I2C_AML_I2C2
 //#define CONFIG_SYS_I2C_AML_I2C3
 
-
-
 #endif

@@ -520,7 +520,13 @@ int board_late_init(void)
 	}
 
 	board_set_dtbfile("meson64_%s.dtb");
+
+	/* get board serial from eeprom or efuse */
+#if defined(CONFIG_I2C_EEPROM_SN)
+	get_i2c_eeprom_board_serial();
+#elif defined(CONFIG_EFUSE_SN)
 	get_efuse_board_serial();
+#endif
 
 	if (get_boot_device() == BOOT_DEVICE_SPI) {
 		setenv("bootdelay", "0");
