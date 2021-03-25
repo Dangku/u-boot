@@ -59,20 +59,13 @@ int board_get_recovery_message(void)
 		offset = info.start;
 	}
 
-	printf("BPI: board_get_recovery_message, offset = %d\n", offset);
-
-	//self-install, misc partition is BOOTLOADER_MESSAGE partition, offset seek=2056
 	dev_desc->block_read(dev_desc->dev, offset,
 			(sizeof(struct bootloader_message)
 			 + (dev_desc->blksz -1)) / dev_desc->blksz, &message);
 
 	message.recovery[strlen(misc_magic)] = 0;
-	
-	printf("BPI: board_get_recovery_message, message.recovery = %s, misc_magic = %s\n", message.recovery, misc_magic);
-	
 	if (0 == strncmp(message.recovery, misc_magic, strlen(misc_magic))) {
-		printf("BPI: board_get_recovery_message, go to selfinstall mode\n");
-		return AMLOGIC_SELFINSTALL;
+		return AMLOGIC_FACTORY_RESET_REBOOT;
 	}
 
 	return AMLOGIC_REBOOT_UNKNOWN;

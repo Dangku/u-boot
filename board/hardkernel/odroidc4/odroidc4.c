@@ -341,8 +341,6 @@ U_BOOT_DEVICE(spifc) = {
 
 int board_init(void)
 {
-	printf("BPI: board_late_init\n");
-	
 	board_led_alive(1);
 
 #ifdef CONFIG_USB_XHCI_AMLOGIC_V2
@@ -362,7 +360,6 @@ extern void cvbs_init(void);
 #ifdef CONFIG_BOARD_LATE_INIT
 int board_late_init(void)
 {
-	printf("BPI: board_late_init\n");
 #if defined(CONFIG_FASTBOOT_FLASH_MMC_DEV)
 	/* select the default mmc device */
 	int mmc_devnum = CONFIG_FASTBOOT_FLASH_MMC_DEV;
@@ -393,7 +390,6 @@ int board_late_init(void)
 	board_set_dtbfile("meson64_odroid%s.dtb");
 
 	if (get_boot_device() == BOOT_DEVICE_SPI) {
-		printf("BPI: boot device is spi\n");
 		setenv("bootdelay", "0");
 		setenv("bootcmd", "run boot_spi");
 		run_command("sf probe", 0);
@@ -405,9 +401,6 @@ int board_late_init(void)
 			if (!strcmp("true", getenv("overwrite")))
 				saveenv();
 		}
-	}
-	else {
-		printf("BPI: boot device is mmc\n");
 	}
 
 	/* boot logo display - 1080p60hz */

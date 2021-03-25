@@ -179,11 +179,7 @@
         "switch_bootmode=" \
             "get_rebootmode;" \
             "if test ${reboot_mode} = factory_reset; then " \
-                "run boot_recovery;" \
-            "else if test ${reboot_mode} = selfinstall; then " \
-            	"echo \"## BPI: selfinstall start...\"; "	\
-                "oem fdisk;" \
-                "run boot_recovery;" \
+                "run boot_default;" \
             "else if test ${reboot_mode} = cold_boot; then " \
                 /*"run try_auto_burn; "*/ \
             "else if test ${reboot_mode} = fastboot; then " \
@@ -191,7 +187,6 @@
             "fi;fi;fi;fi;" \
             "\0" \
         "boot_recovery="\
-        	"echo \"## BPI: run boot_recovery...\"; "	\
             "hdmitx edid; "\
             "if test ${hdmimode} = custombuilt; then setenv cmode modeline=${modeline} customwidth=${customwidth} customheight=${customheight}; fi; "\
             "if test ${hdmimode} == 2160p*; then setenv hdmimode 1080p60hz; fi; "\
@@ -200,7 +195,8 @@
                 "cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} "\
                 "androidboot.selinux=permissive jtag=disable "\
                 "androidboot.hardware=" CONFIG_DEVICE_PRODUCT " "\
-                "recovery_part=recovery recovery_offset=0; "\
+                "recovery_part=recovery recovery_offset=0 " \
+                "boot_device=${boot_device};" \
             "movi read dtbs 0 ${cramfsaddr}; " \
             "if test " CONFIG_DEVICE_PRODUCT " = odroidn2; then " \
                 "cramfsload ${dtb_mem_addr} meson64_" CONFIG_DEVICE_PRODUCT "_android.dtb;" \

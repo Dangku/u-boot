@@ -26,8 +26,6 @@
 #include <libfdt.h>
 #include <asm/arch/eth_setup.h>
 
-#define MAC_LENGHT            6
-
 /*
  * setup eth device board socket
  */
@@ -52,54 +50,3 @@ struct eth_board_socket* eth_board_setup(char *name)
 
 	return new_board;
 }
-
-#if 0
-static unsigned char chartonum(char c)
-{
-        if (c >= '0' && c <= '9')
-                return c - '0';
-        if (c >= 'A' && c <= 'F')
-                return (c - 'A') + 10;
-        if (c >= 'a' && c <= 'f')
-                return (c - 'a') + 10;
-        return 0;
-}
-
-void get_mac_spi_eeprom(void)
-{
-
-}
-
-void get_mac_efuse(void)
-{
-	char mac[64];
-	int mac_addr[MAC_LENGHT] = {0};
-	int i;
-
-	//get mac from efuse and set eth_mac env
-	run_command("efuse mac", 0);
-
-	char *s = getenv("eth_mac");
-	if ((s != NULL) && (strcmp(s, "00:00:00:00:00:00") != 0)) {
-		for (i = 0; i < 6 && s[0] != '\0' && s[1] != '\0'; i++) {
-			mac_addr[i] = chartonum(s[0]) << 4 | chartonum(s[1]);
-			s +=3;
-		}
-	} else {
-		
-	}
-
-	printf("mac address: ");
-
-	for (i=0; i<MAC_LENGHT; i++) {
-		if (i == (MAC_LENGHT-1))
-			printf("%02x",mac_addr[i]);
-		else
-			printf("%02x:",mac_addr[i]);
-	}
-
-	printf("\n");
-	sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",mac_addr[0],mac_addr[1],mac_addr[2],mac_addr[3],mac_addr[4],mac_addr[5]);
-	setenv("eth_mac", mac);
-}
-#endif
