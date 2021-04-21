@@ -96,15 +96,23 @@
 
 #define ENV_BOOT_ORDER_DEFAULT			"boot_order=mmc rawimage usb pxe spi\0"
 
+#define ENV_BOOTSCRIPTS_PREFIX          "boot_prefixes=/ /boot/\0"
+
 #define ENV_BOOTSCRIPTS_DEFAULT			"boot_scripts=boot.ini boot.scr\0"
 
 #define ENV_BOOT_ATTEMPT_DEFAULT			\
-	"boot_attempt="					\
-		"for script in ${boot_scripts}; do "	\
-			"echo \"## Attempting fetch ${script} in ${devtype}:${devnum}...\"; "	\
-			"load ${devtype} ${devnum} ${preloadaddr} ${script}; "	\
-			"source ${preloadaddr}; "	\
-		"done\0"
+	"boot_attempt="						\
+	  "for prefix_idx in ${boot_prefixes}; do "  		\
+	    "setenv prefix ${prefix_idx}; "					\
+		"for script in ${boot_scripts}; do "			\
+			"echo \"## Attempting fetch ${prefix}${script} in ${devtype}:${devnum}...\"; "	\
+			"if test -e ${devtype} ${devnum} ${prefix}${script}; then "       \
+				"load ${devtype} ${devnum} ${preloadaddr} ${prefix}${script}; "	\
+				"source ${preloadaddr}; "				\
+				"echo SCRIPT FAILED: continuing...; " 	\
+			"fi; " 						\
+		"done;"							\
+	  "done\0"
 
 
 #define ENV_MMC_DEFAULT					\
@@ -144,6 +152,7 @@
         ENV_MMC_LIST_DEFAULT \
 	ENV_USB_DEFAULT \
 	ENV_USB_LIST_DEFAULT \
+	ENV_BOOTSCRIPTS_PREFIX \
 	ENV_BOOTSCRIPTS_DEFAULT \
 	ENV_BOOT_ORDER_DEFAULT \
 	ENV_BOOT_DEFAULT \
