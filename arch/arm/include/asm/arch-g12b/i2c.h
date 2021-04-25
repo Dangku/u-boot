@@ -135,7 +135,10 @@ struct i2c_msg {
 #define MESON_I2C_MASTER_A_GPIOW_1_BIT		(1<<23)
 
 /*i2c master b*/
-
+#define MESON_I2C_MASTER_B_GPIOX_10_REG                (PERIPHS_PIN_MUX_4)
+#define MESON_I2C_MASTER_B_GPIOX_10_BIT                (5<<8)
+#define MESON_I2C_MASTER_B_GPIOX_11_REG                (PERIPHS_PIN_MUX_4)
+#define MESON_I2C_MASTER_B_GPIOX_11_BIT                (5<<12)
 
 #define MESON_I2C_MASTER_B_GPIOH_3_REG		(PERIPHS_PIN_MUX_7)
 #define MESON_I2C_MASTER_B_GPIOH_3_BIT		(1<<6)
@@ -158,7 +161,17 @@ struct i2c_msg {
 #define MESON_I2C_MASTER_C_GPIOX_1_REG		(PERIPHS_PIN_MUX_1)
 #define MESON_I2C_MASTER_C_GPIOX_1_BIT		(1<<23)
 
+#define MESON_I2C_MASTER_C_GPIOX_17_REG                (PERIPHS_PIN_MUX_5)
+#define MESON_I2C_MASTER_C_GPIOX_17_BIT                (1<<4)
+#define MESON_I2C_MASTER_C_GPIOX_18_REG                (PERIPHS_PIN_MUX_5)
+#define MESON_I2C_MASTER_C_GPIOX_18_BIT                (1<<8)
+
+
 /*i2c master d*/
+#define MESON_I2C_MASTER_D_GPIOA_14_REG                (PERIPHS_PIN_MUX_E)
+#define MESON_I2C_MASTER_D_GPIOA_14_BIT                (2<<24)
+#define MESON_I2C_MASTER_D_GPIOA_15_REG                (PERIPHS_PIN_MUX_E)
+#define MESON_I2C_MASTER_D_GPIOA_15_BIT                (2<<28)
 
 
 #define MESON_I2C_MASTER_D_GPIOY_10_REG		(PERIPHS_PIN_MUX_10)
@@ -172,7 +185,6 @@ struct i2c_msg {
 #define MESON_I2C_MASTER_D_GPIOH_6_BIT		(1<<24)
 
 /*i2c master AO*/
-
 
 #define MESON_I2C_MASTER_AO_GPIOAO_4_REG	(P_AO_RTI_PINMUX_REG0) /* P_AO_RTI_PIN_MUX_REG */
 #define MESON_I2C_MASTER_AO_GPIOAO_4_BIT	(1<<8)
