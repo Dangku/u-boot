@@ -19,6 +19,13 @@
 #include "bananapi-g12-common.h"
 
 #if defined(CONFIG_CMD_USB)
+	 /* USB Host Hub Reset */
+        #define CONFIG_USB_HUB_RST_N            GPIOEE(GPIOH_4)
+        #define CONFIG_USB_HUB_RST_N_NAME       "GPIOH_4"
+        /* USB Host Hub Enable */
+        #define CONFIG_USB_HUB_CHIP_EN          GPIOEE(GPIOH_6)
+        #define CONFIG_USB_HUB_CHIP_EN_NAME     "GPIOH_6"
+
 	/* USB OTG Power Enable */
 	#define CONFIG_USB_GPIO_PWR		-1
 	#define CONFIG_USB_GPIO_PWR_NAME	""
@@ -32,7 +39,7 @@
 //#define CONFIG_SYS_I2C_AML_I2C1
 
 /* i2c_2 GPIO_X17/X18  */
-//#define CONFIG_SYS_I2C_AML_I2C2
+#define CONFIG_SYS_I2C_AML_I2C2
 
 /* i2c_3 GPIO_A14/A15 */
 //#define CONFIG_SYS_I2C_AML_I2C3

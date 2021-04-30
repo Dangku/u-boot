@@ -511,6 +511,10 @@ int board_late_init(void)
 	run_command("showlogo", 0);
 	usbhost_early_poweron();
 
+	/* pcie  */
+        clrbits_le32(PERIPHS_PIN_MUX_9, 0xf << 28);
+        setbits_le32(PERIPHS_PIN_MUX_9, 1 << 28);
+
 	return 0;
 }
 #endif
