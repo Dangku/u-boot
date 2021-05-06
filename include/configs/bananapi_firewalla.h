@@ -17,7 +17,7 @@
 #define CONFIG_CEC_OSD_NAME		"BANANAPI-FIREWALLA"
 #define CONFIG_CEC_WAKEUP
 
-#define CONFIG_AML_SPICC
+//#define CONFIG_AML_SPICC
 #define CONFIG_I2C_EEPROM
 
 #include "bananapi-g12-common.h"
