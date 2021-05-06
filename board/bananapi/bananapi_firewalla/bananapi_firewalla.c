@@ -213,8 +213,25 @@ static void board_mmc_register(unsigned port)
 
 	sd_emmc_register(aml_priv);
 }
+
+static void board_mmc_power_enable(void)
+{
+        printf("BPI-sd: set sd power on\n");
+
+	/* set gpioAO_8 output/high to set sd_power enable */
+        writel(readl(AO_GPIO_O) | (1 << 8), AO_GPIO_O);
+        writel(readl(AO_GPIO_O_EN_N) | (1 << 8), AO_GPIO_O_EN_N);
+        writel(readl(AO_RTI_PINMUX_REG1) & (~(0xf << 0)), AO_RTI_PINMUX_REG1);
+
+        /* set gpioAO_9 output/low to set sd 3v3_1v8_en to 3v3 default */
+        writel(readl(AO_GPIO_O) & (~(1 << 9)), AO_GPIO_O);
+        writel(readl(AO_GPIO_O_EN_N) & (~(1 << 9)), AO_GPIO_O_EN_N);
+        writel(readl(AO_RTI_PINMUX_REG1) & (~(0xf << 4)), AO_RTI_PINMUX_REG1);
+}
+
 int board_mmc_init(bd_t	*bis)
 {
+	board_mmc_power_enable();
 	board_mmc_register(SDIO_PORT_C);	// eMMC
 	board_mmc_register(SDIO_PORT_B);	// SD card
 
@@ -512,8 +529,8 @@ int board_late_init(void)
 	usbhost_early_poweron();
 
 	/* pcie  */
-        clrbits_le32(PERIPHS_PIN_MUX_9, 0xf << 28);
-        setbits_le32(PERIPHS_PIN_MUX_9, 1 << 28);
+        //clrbits_le32(PERIPHS_PIN_MUX_9, 0xf << 28);
+        //setbits_le32(PERIPHS_PIN_MUX_9, 1 << 28);
 
 	return 0;
 }
