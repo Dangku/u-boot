@@ -504,9 +504,17 @@ int board_late_init(void)
 	board_cvbs_probe();
 #endif
 
+	cpu_id_t cpuid = get_cpu_id();
+	printf("BPI: family_id is %x, chip_rev is %x\n", cpuid.family_id, cpuid.chip_rev);
+	
     if (board_is_bananapi_firewalla()) {
 		printf("BPI: board is Bananapi Firewalla\n");
-		setenv("variant", "bananapi_firewalla");
+
+		if (cpuid.chip_rev == MESON_CPU_CHIP_REVISION_A)
+			setenv("variant", "bananapi_firewalla_a");
+		else if(cpuid.chip_rev == MESON_CPU_CHIP_REVISION_C)
+			setenv("variant", "bananapi_firewalla");
+
 		setenv("board", "bpi-firewalla");
 	}
 
