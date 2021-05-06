@@ -142,8 +142,7 @@ void board_set_dtbfile(const char *format)
 #if defined(CONFIG_BANANAPI_FIREWALLA)
 int board_is_bananapi_firewalla(void)
 {
-    //return (board_revision() == 0x20210426);
-	return 1;
+	return (board_revision() == 0x20210426);
 }
 #elif defined(CONFIG_BANANAPI_M5)
 int board_is_bananapi_m5(void)
