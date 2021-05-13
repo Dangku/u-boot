@@ -60,7 +60,7 @@ static unsigned int get_hw_revision(void)
 	int adc = get_adc_value(1);
 
 #if defined(CONFIG_BANANAPI_FIREWALLA)
-	if (IS_RANGE(adc, 80, 100))	/* avg : 90 */
+	if (IS_RANGE(adc, 70, 100))	/* avg : 90 */
 		hwrev = BOARD_REVISION(2021, 04, 26);
 #elif defined(CONFIG_BANANAPI_M5)
 	if (IS_RANGE(adc, 80, 100))	/* avg : 90 */
@@ -69,7 +69,7 @@ static unsigned int get_hw_revision(void)
 		hwrev = BOARD_REVISION(2021, 01, 29);
 #endif
 
-	debug("ADC=%d, hwrev=0x%x\n", adc, hwrev);
+	printf("ADC=%d, hwrev=0x%x\n", adc, hwrev);
 
 	return hwrev;
 }
