@@ -18,9 +18,21 @@
 #define CONFIG_CEC_WAKEUP
 
 //#define CONFIG_AML_SPICC
-#define CONFIG_I2C_EEPROM
+//#define CONFIG_I2C_EEPROM
 
 #include "bananapi-g12-common.h"
+
+/* vpu */
+#undef CONFIG_AML_VPU
+
+/* DISPLAY & HDMITX */
+#undef CONFIG_AML_HDMITX20
+#undef CONFIG_AML_CANVAS
+#undef CONFIG_AML_VOUT
+#undef CONFIG_AML_OSD
+#undef CONFIG_OSD_SCALE_ENABLE
+#undef CONFIG_CMD_BMP
+#undef CONFIG_AML_CVBS
 
 #if defined(CONFIG_CMD_USB)
 	#define CONFIG_USB_HUB_RST_N            -1

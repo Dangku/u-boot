@@ -492,8 +492,8 @@ int board_late_init(void)
 #endif
 #ifdef CONFIG_AML_VPU
 	vpu_probe();
-#endif
 	vpp_init();
+#endif
 #ifdef CONFIG_AML_HDMITX20
 	hdmi_tx_set_hdmi_5v();
 	hdmi_tx_init();
@@ -532,13 +532,12 @@ int board_late_init(void)
 		setenv("bootcmd", "run boot_spi");
 	}
 
+#ifdef CONFIG_AML_VOUT
 	/* boot logo display - 1080p60hz */
 	run_command("showlogo", 0);
-	usbhost_early_poweron();
+#endif
 
-	/* pcie  */
-        //clrbits_le32(PERIPHS_PIN_MUX_9, 0xf << 28);
-        //setbits_le32(PERIPHS_PIN_MUX_9, 1 << 28);
+	//usbhost_early_poweron();
 
 	return 0;
 }
