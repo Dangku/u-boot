@@ -506,6 +506,8 @@ int board_late_init(void)
 
 	cpu_id_t cpuid = get_cpu_id();
 	printf("BPI: family_id is %x, chip_rev is %x\n", cpuid.family_id, cpuid.chip_rev);
+
+	board_chip_id();
 	
     if (board_is_bananapi_firewalla()) {
 		printf("BPI: board is Bananapi Firewalla\n");

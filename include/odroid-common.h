@@ -37,6 +37,7 @@ int board_is_odroidc4(void);
 int board_is_odroidhc4(void);
 #elif defined(CONFIG_BANANAPI_FIREWALLA)
 int board_is_bananapi_firewalla(void);
+void board_chip_id(void);
 #elif defined(CONFIG_BANANAPI_M5)
 int board_is_bananapi_m5(void);
 int board_is_bananapi_m2_pro(void);

@@ -6,6 +6,7 @@
 #include <asm/arch/gpio.h>
 #include <linux/kernel.h>
 #include <asm/arch/efuse.h>
+#include <asm/cpu_id.h>
 #include <i2c.h>
 
 #include <odroid-common.h>
@@ -121,6 +122,29 @@ int get_efuse_board_serial(void)
 	return 0;
 }
 #endif
+
+void board_chip_id(void)
+{
+	int i;
+	uint8_t chipid[16];
+	char buf[16];
+
+	memset(chipid, 0, sizeof(chipid));
+	memset(buf, 0, sizeof(buf));
+
+	printf("chipid: ");
+
+	if (get_chip_id(chipid, sizeof(chipid)) == 0) {
+		for (i = 0; i < sizeof(chipid); i++)
+			sprintf(buf + 2 * i, "%02x", chipid[i]);
+	}
+	else {
+		printf("get chip id error\n");
+	}
+
+	printf("%s\n", buf);
+	setenv("chipid", buf);
+}
 
 int board_revision(void)
 {
