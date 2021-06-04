@@ -141,7 +141,7 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
 	unsigned i = 0;
 
 	p->status = RESPONSE_OK;
-	val = ( AUTO_WAKEUP_SRC | ETH_PHY_GPIO_SRC);
+	val = ( AUTO_WAKEUP_SRC | ETH_PHY_GPIO_SRC | RTC_WAKEUP_SRC);
 
 #ifdef CONFIG_CEC_WAKEUP
 	val |= CECB_WAKEUP_SRC;
@@ -187,8 +187,11 @@ static unsigned int detect_key(unsigned int suspend_from)
 	unsigned int is_gpiokey = 0;
 #endif
 
+#ifdef CONFIG_REMOTE_WAKEUP
 	backup_remote_register();
 	init_remote();
+#endif
+
 #ifdef CONFIG_CEC_WAKEUP
 		if (hdmi_cec_func_config & 0x1) {
 			remote_cec_hw_reset();
@@ -201,7 +204,7 @@ static unsigned int detect_key(unsigned int suspend_from)
 #endif
 
 	do {
-		#ifdef CONFIG_CEC_WAKEUP
+#ifdef CONFIG_CEC_WAKEUP
 		if (!cec_msg.log_addr)
 			cec_node_init();
 		else {
@@ -210,12 +213,14 @@ static unsigned int detect_key(unsigned int suspend_from)
 					exit_reason = CEC_WAKEUP;
 			}
 		}
-		#endif
+#endif
+#ifdef CONFIG_REMOTE_WAKEUP
 		if (irq[IRQ_AO_IR_DEC] == IRQ_AO_IR_DEC_NUM) {
 			irq[IRQ_AO_IR_DEC] = 0xFFFFFFFF;
 			if (remote_detect_key())
 				exit_reason = REMOTE_WAKEUP;
 		}
+#endif
 
 #ifdef CONFIG_ADC_KEY
 		if (irq[IRQ_AO_TIMERA] == IRQ_AO_TIMERA_NUM) {
@@ -232,13 +237,17 @@ static unsigned int detect_key(unsigned int suspend_from)
 			saradc_disable();
 		}
 #endif
-
-
 		if (enable_wol && (irq[IRQ_GPIO1] == IRQ_GPIO1_NUM)) {
 			irq[IRQ_GPIO1] = 0xFFFFFFFF;
 			if (!(readl(PREG_PAD_GPIO4_I) & (0x01 << 14))
 					&& (readl(PREG_PAD_GPIO4_EN_N) & (0x01 << 14)))
 				exit_reason = ETH_PHY_GPIO;
+		}
+
+		if (irq[IRQ_VRTC] == IRQ_VRTC_NUM) {
+			uart_puts("rtc alarm trigger\n");
+			irq[IRQ_VRTC] = 0xFFFFFFFF;
+			exit_reason = RTC_WAKEUP;
 		}
 
 		if (irq[IRQ_ETH_PTM] == IRQ_ETH_PMT_NUM) {
@@ -258,7 +267,9 @@ static unsigned int detect_key(unsigned int suspend_from)
 			__switch_idle_task();
 	} while (1);
 
+#ifdef CONFIG_REMOTE_WAKEUP
 	restore_remote_register();
+#endif
 
 	return exit_reason;
 }

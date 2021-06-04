@@ -7,15 +7,15 @@
  */
 
 
-#ifndef __BANANAPI_M5_H__
-#define __BANANAPI_M5_H__
+#ifndef __BANANAPI_FIREWALLA_H__
+#define __BANANAPI_FIREWALLA_H__
 
 #define CONFIG_DEVICE_PRODUCT		"bananapi_firewalla"
 #define BANANAPI_BOARD_UUID		"9098004a-a1dd-11e8-98d0-529269fb1459"
 
 /* configs for CEC */
-#define CONFIG_CEC_OSD_NAME		"BANANAPI-FIREWALLA"
-#define CONFIG_CEC_WAKEUP
+//#define CONFIG_CEC_OSD_NAME		"BANANAPI-FIREWALLA"
+//#define CONFIG_CEC_WAKEUP
 
 //#define CONFIG_AML_SPICC
 //#define CONFIG_I2C_EEPROM
@@ -33,6 +33,8 @@
 #undef CONFIG_OSD_SCALE_ENABLE
 #undef CONFIG_CMD_BMP
 #undef CONFIG_AML_CVBS
+
+#undef CONFIG_REMOTE_WAKEUP
 
 #if defined(CONFIG_CMD_USB)
 	#define CONFIG_USB_HUB_RST_N            -1

@@ -44,6 +44,7 @@
 
 /* Enable GPIO Key Wakeup */
 //#define CONFIG_GPIO_WAKEUP
+#define CONFIG_REMOTE_WAKEUP
 
 /* Serial config */
 #define CONFIG_CONS_INDEX			2

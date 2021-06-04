@@ -181,8 +181,11 @@ static unsigned int detect_key(unsigned int suspend_from)
 	unsigned int is_gpiokey = 0;
 #endif
 
+#ifdef CONFIG_REMOTE_WAKEUP
 	backup_remote_register();
 	init_remote();
+#endif
+
 #ifdef CONFIG_CEC_WAKEUP
 	if (hdmi_cec_func_config & 0x1) {
 		remote_cec_hw_reset();
@@ -205,13 +208,13 @@ static unsigned int detect_key(unsigned int suspend_from)
 			}
 		}
 #endif
-
+#ifdef CONFIG_REMOTE_WAKEUP
 		if (irq[IRQ_AO_IR_DEC] == IRQ_AO_IR_DEC_NUM) {
 			irq[IRQ_AO_IR_DEC] = 0xFFFFFFFF;
 			if (remote_detect_key())
 				exit_reason = REMOTE_WAKEUP;
 		}
-
+#endif
 #ifdef CONFIG_ADC_KEY
 		if (irq[IRQ_AO_TIMERA] == IRQ_AO_TIMERA_NUM) {
 			irq[IRQ_AO_TIMERA] = 0xFFFFFFFF;
@@ -255,7 +258,9 @@ static unsigned int detect_key(unsigned int suspend_from)
 			__switch_idle_task();
 	} while (1);
 
+#ifdef CONFIG_REMOTE_WAKEUP
 	restore_remote_register();
+#endif
 
 	return exit_reason;
 }

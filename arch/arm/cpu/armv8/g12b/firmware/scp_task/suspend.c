@@ -56,6 +56,7 @@ void enter_suspend(unsigned int suspend_from)
 {
 	int exit_reason = UDEFINED_WAKEUP;
 
+#ifdef CONFIG_ODROID_N2
 	/* clear GPIOA_11 pin mux */
 	aml_update_bits(PERIPHS_PIN_MUX_E, 0xf << 12, 0);
 	/* clear GPIOA_13 pin mux */
@@ -67,6 +68,7 @@ void enter_suspend(unsigned int suspend_from)
 	aml_update_bits(PREG_PAD_GPIO5_EN_N, 1 << 13, 1 << 13);
 
 	uart_puts("GPIOA_11/13 off\n");
+#endif
 
 	#ifdef CONFIG_CEC_WAKEUP
 		hdmi_cec_func_config = readl(P_AO_DEBUG_REG0) & 0xff;
