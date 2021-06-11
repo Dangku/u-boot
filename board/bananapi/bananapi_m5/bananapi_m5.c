@@ -459,7 +459,7 @@ U_BOOT_DEVICE(spicc0) = {
 
 int board_init(void)
 {
-	board_led_alive(1);
+	board_led_alive(0);
 
 #ifdef CONFIG_SYS_I2C_AML
 	board_i2c_init();

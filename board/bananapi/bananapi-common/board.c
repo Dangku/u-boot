@@ -21,7 +21,7 @@ int board_led_alive(int status)
 		return -EINVAL;
 	}
 
-	return gpio_direction_output(GPIO_LED_ALIVE, status & 0);
+	return gpio_direction_output(GPIO_LED_ALIVE, status & 1);
 }
 
 const char *boot_device_name(int n)
