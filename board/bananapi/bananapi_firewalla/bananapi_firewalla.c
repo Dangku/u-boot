@@ -453,6 +453,21 @@ U_BOOT_DEVICE(spicc0) = {
 };
 #endif /* CONFIG_AML_SPICC */
 
+#define IS_RANGE(x, min, max)   ((x) >= (min) && (x) < (max))
+void get_wifi_revision(void)
+{
+	int adc = get_adc_value(3);
+
+	if (IS_RANGE(adc, 0, 50))
+		setenv("wifi_rev", "88x2cs");
+	else if (IS_RANGE(adc, 1000, 1050))
+		setenv("wifi_rev", "dhd");
+	else
+		printf("invalid wifi adc value\n");
+
+	printf("ADC=%d, wifi_rev=%s\n", adc, getenv("wifi_rev"));
+}
+
 int board_init(void)
 {
 	board_led_alive(1);
@@ -508,6 +523,7 @@ int board_late_init(void)
 	printf("BPI: family_id is %x, chip_rev is %x\n", cpuid.family_id, cpuid.chip_rev);
 
 	board_chip_id();
+	get_wifi_revision();
 	
     if (board_is_bananapi_firewalla()) {
 		printf("BPI: board is Bananapi Firewalla\n");
