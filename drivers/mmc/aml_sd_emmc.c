@@ -30,6 +30,8 @@
 #include <storage.h>
 #endif
 #include <asm/cpu_id.h>
+#include <odroid-common.h>
+
 //#define SD_DEBUG_ENABLE
 
 #ifdef SD_DEBUG_ENABLE
@@ -1082,7 +1084,13 @@ void sd_emmc_register(struct aml_card_sd_info * aml_priv)
 #ifdef MMC_HS200_MODE
 	cfg->f_max = 198000000;
 #else
-	cfg->f_max = 40000000;
+
+#ifdef CONFIG_BANANAPI_M5
+	if (board_is_bananapi_m2_pro())
+		cfg->f_max = 25000000;
+	else
+#endif
+		cfg->f_max = 40000000;
 #endif
 	/**
 	 * For blank emmc, part-type should be unknown.
