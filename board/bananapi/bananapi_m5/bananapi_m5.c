@@ -526,6 +526,8 @@ int board_late_init(void)
 	get_i2c_eeprom_board_serial();
 #elif defined(CONFIG_EFUSE_SN)
 	get_efuse_board_serial();
+#else
+	get_chipid_board_serial();
 #endif
 
 	if (get_boot_device() == BOOT_DEVICE_SPI) {

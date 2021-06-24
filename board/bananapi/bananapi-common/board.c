@@ -146,6 +146,12 @@ void board_chip_id(void)
 	setenv("chipid", buf);
 }
 
+void get_chipid_board_serial(void)
+{
+	board_chip_id();
+	setenv("serial", getenv("chipid"));
+}
+
 int board_revision(void)
 {
 	if (board_rev == -1)
