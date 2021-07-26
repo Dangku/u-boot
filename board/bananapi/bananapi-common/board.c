@@ -60,10 +60,7 @@ static unsigned int get_hw_revision(void)
 	int hwrev = -1;
 	int adc = get_adc_value(1);
 
-#if defined(CONFIG_BANANAPI_FIREWALLA)
-	if (IS_RANGE(adc, 70, 100))	/* avg : 90 */
-		hwrev = BOARD_REVISION(2021, 04, 26);
-#elif defined(CONFIG_BANANAPI_M5)
+#if defined(CONFIG_BANANAPI_M5)
 	if (IS_RANGE(adc, 80, 100))	/* avg : 90 */
 		hwrev = BOARD_REVISION(2020, 10, 26);
 	else if (IS_RANGE(adc, 240, 260))  /* avg : 250 */
@@ -169,12 +166,7 @@ void board_set_dtbfile(const char *format)
 	setenv("fdtfile", s);
 }
 
-#if defined(CONFIG_BANANAPI_FIREWALLA)
-int board_is_bananapi_firewalla(void)
-{
-	return (board_revision() == 0x20210426);
-}
-#elif defined(CONFIG_BANANAPI_M5)
+#if defined(CONFIG_BANANAPI_M5)
 int board_is_bananapi_m5(void)
 {
 	return (board_revision() == 0x20201026);
