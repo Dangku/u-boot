@@ -294,6 +294,11 @@ config BANANAPI_M5
         select BANANAPI_COMMON
         default n
 
+config BANANAPI_M2S
+	bool "Support Bananapi M2S board"
+	select BANANAPI_COMMON
+	default n
+
 if GXB_SKT_V1
 source "board/amlogic/gxb_skt_v1/Kconfig"
 endif
@@ -561,4 +566,8 @@ endif
 
 if BANANAPI_M5
 source "board/bananapi/bananapi_m5/Kconfig"
+endif
+
+if BANANAPI_M2S
+source "board/bananapi/bananapi_m2s/Kconfig"
 endif
