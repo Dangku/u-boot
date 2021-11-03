@@ -257,7 +257,7 @@
                 "fi;"\
                 "osd open;"\
                 "osd clear;"\
-                "if load mmc 0:2 ${loadaddr} /usr/share/fenix/logo/logo.bmp || load mmc 1:2 ${loadaddr} /usr/share/fenix/logo/logo.bmp || load mmc 1:5 ${loadaddr} /usr/share/fenix/logo/logo.bmp; then "\
+                "if load mmc 0:1 ${loadaddr} /boot-logo.bmp || load mmc 0:2 ${loadaddr} /usr/share/fenix/logo/logo.bmp || load mmc 1:2 ${loadaddr} /usr/share/fenix/logo/logo.bmp || load mmc 1:5 ${loadaddr} /usr/share/fenix/logo/logo.bmp; then "\
                     "bmp display ${loadaddr};"\
                     "bmp scale;"\
                 "fi;"\
