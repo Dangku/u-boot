@@ -1,0 +1,7 @@
+config BANANAPI_M2S
+	bool "Support Bananapi M2S board"
+	default n
+
+if BANANAPI_M2S
+source "board/bananapi/bananapi_m2s/Kconfig"
+endif

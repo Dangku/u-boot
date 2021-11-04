@@ -130,7 +130,9 @@ static void defendkey_process(void)
 
 int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+#if defined(CONFIG_CMD_BOOTCTOL_AVB)
 	char *avb_s;
+#endif
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	static int relocated = 0;
 
@@ -182,6 +184,7 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return nRet;
 	}
 
+#if defined(CONFIG_CMD_BOOTCTOL_AVB)
 	avb_s = getenv("avb2");
 	if (avb_s == NULL) {
 		run_command("get_avb_mode;", 0);
@@ -246,6 +249,7 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			avb_slot_verify_data_free(out_data);
 		}
 	}
+#endif
 
 #ifdef CONFIG_AML_RSVD_ADDR
 	defendkey_process();

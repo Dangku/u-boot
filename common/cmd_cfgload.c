@@ -15,7 +15,6 @@
 #include <cli_hush.h>
 #endif
 
-#define BOOTINI_MAGIC	"KHADAS-UBOOT-CONFIG"
 #define SZ_BOOTINI		SZ_64K
 
 /* Nothing to proceed with zero size string or comment.
@@ -54,6 +53,8 @@ static char* read_cfgload(void)
 	};
 	int partition_array_len = sizeof(partition_pairs) / sizeof(partition_pairs[0]);
 	int i = 0;
+	char magic[32];
+	int size;
 
 	p = (char *)simple_strtoul(getenv("loadaddr"), NULL, 16);
 	if (NULL == p)
@@ -90,6 +91,8 @@ static char* read_cfgload(void)
 	/* Scan MAGIC string, readed boot.ini must start with exact magic string.
 	 * Otherwise, we will not proceed at all.
 	 */
+
+	size = snprintf(magic, sizeof(magic), "%s-UBOOT-CONFIG", CONFIG_DEVICE_PRODUCT);
 	while (*p) {
 		char *s = strsep(&p, "\n");
 		if (!valid_command(s))
@@ -98,11 +101,11 @@ static char* read_cfgload(void)
 		/* MAGIC string is discovered, return the buffer address of next to
 		 * proceed the commands.
 		 */
-		if (!strncmp(s, BOOTINI_MAGIC, sizeof(BOOTINI_MAGIC)))
+		if (!strncmp(s, magic, size))
 			return memcpy(malloc(filesize), p, filesize);
 	}
 
-	printf("cfgload: MAGIC NAME, %s, is not found!!\n", BOOTINI_MAGIC);
+	printf("cfgload: MAGIC NAME, %s, is not found!!\n", CONFIG_DEVICE_PRODUCT);
 
 	return NULL;
 }

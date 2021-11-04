@@ -36,16 +36,8 @@
 #define CONFIG_VDDEE_INIT_VOLTAGE	880		// VDDEE power up voltage
 #define CONFIG_VDDEE_SLEEP_VOLTAGE	770		// VDDEE suspend voltage
 
-/* Khadas commands */
-#define CONFIG_KHADAS_KBI 1
-#define CONFIG_KHADAS_CFGLOAD 1
-#define CONFIG_KHADAS_SCRIPT 1
-
-#define CONFIG_TCA6408 1
-#define CONFIG_POWER_FUSB302 1
-
 /* configs for CEC */
-#define CONFIG_CEC_OSD_NAME		"KVIM3"
+#define CONFIG_CEC_OSD_NAME		"Bananapi"
 #define CONFIG_CEC_WAKEUP
 /*if use bt-wakeup,open it*/
 #define CONFIG_BT_WAKEUP
@@ -56,12 +48,13 @@
 #define CONFIG_CMD_SARADC 1
 #define CONFIG_SARADC_CH  2
 
-/* Bootloader Control Block function
-   That is used for recovery and the bootloader to talk to each other
-  */
-#define CONFIG_BOOTLOADER_CONTROL_BLOCK
+/* ADC keys */
+#define CONFIG_ADC_KEY
+#ifdef CONFIG_ADC_KEY
+#define CONFIG_ADC_POWER_KEY_CHAN		2  /* channel range: 0-7*/
+#define CONFIG_ADC_POWER_KEY_VAL		0  /* sample value range: 0-1023*/
+#endif
 
-#define CONFIG_CMD_BOOTCTOL_AVB
 
 /* Serial config */
 #define CONFIG_CONS_INDEX 2
@@ -80,22 +73,15 @@
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL8 0xFFFFFFFF
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL9 0xFFFFFFFF
 
-/*config the default parameters for adc power key*/
-#define CONFIG_ADC_POWER_KEY_CHAN   2  /*channel range: 0-7*/
-#define CONFIG_ADC_POWER_KEY_VAL    0  /*sample value range: 0-1023*/
-
 /* args/envs */
 #define CONFIG_SYS_MAXARGS  64
 #define CONFIG_EXTRA_ENV_SETTINGS \
-        "firstboot=1\0"\
-        "upgrade_step=0\0"\
         "jtag=disable\0"\
-        "port_mode=0\0"\
         "loadaddr=1080000\0"\
         "panel_type=lcd_0\0" \
         "outputmode=panel\0" \
         "hdmimode=1080p60hz\0" \
-	"colorattribute=444,8bit\0"\
+	    "colorattribute=444,8bit\0"\
         "cvbsmode=576cvbs\0" \
         "display_width=1920\0" \
         "display_height=1080\0" \
@@ -111,17 +97,8 @@
         "frac_rate_policy=1\0" \
         "sdr2hdr=2\0" \
         "hdmi_read_edid=1\0" \
-        "usb_burning=update 1000\0" \
         "otg_device=1\0"\
         "fdt_high=0x20000000\0"\
-        "try_auto_burn=update 700 750;\0"\
-        "sdcburncfg=aml_sdc_burn.ini\0"\
-        "sdc_burning=sdc_burn ${sdcburncfg}\0"\
-        "wipe_data=successful\0"\
-        "wipe_cache=successful\0"\
-        "EnableSelinux=permissive\0" \
-        "recovery_part=recovery\0"\
-        "recovery_offset=0\0"\
         "cvbs_drv=0\0"\
         "lock=10001000\0"\
         "osd_reverse=0\0"\
@@ -129,113 +106,29 @@
         "active_slot=normal\0"\
         "boot_part=boot\0"\
         "Irq_check_en=0\0"\
-        "reboot_mode_android=""normal""\0"\
         "fs_type=""rootfstype=ext4""\0"\
         "initargs="\
             "root=LABEL=ROOTFS rootflags=data=writeback rw rootfstype=ext4 console=tty0 console=ttyS0,115200n8 no_console_suspend consoleblank=0 fsck.repair=yes net.ifnames=0 "\
             "\0"\
-        "upgrade_check="\
-            "echo upgrade_step=${upgrade_step}; "\
-            "if itest ${upgrade_step} == 3; then "\
-                "run init_display; run storeargs; run update;"\
-            "else fi;"\
-            "\0"\
         "storeargs="\
             "setenv bootargs ${initargs} logo=${display_layer},loaded,${fb_addr} vout=${outputmode},enable hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} jtag=${jtag}; "\
-	"setenv bootargs ${bootargs} androidboot.hardware=amlogic reboot_mode=${reboot_mode} ddr_size=${ddr_size};"\
+	        "setenv bootargs ${bootargs} androidboot.hardware=amlogic reboot_mode=${reboot_mode} ddr_size=${ddr_size};"\
             "run cmdline_keys;"\
             "\0"\
         "switch_bootmode="\
             "get_rebootmode;"\
             "if test ${reboot_mode} = factory_reset; then "\
-                    "setenv reboot_mode_android ""normal"";"\
                     "run storeargs;"\
-                    "run recovery_from_flash;"\
-            "else if test ${reboot_mode} = update; then "\
-                    "setenv reboot_mode_android ""normal"";"\
-                    "run storeargs;"\
-                    "run update;"\
-            "else if test ${reboot_mode} = quiescent; then "\
-                    "setenv reboot_mode_android ""quiescent"";"\
-                    "run storeargs;"\
-                    "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
+                    "run storeboot;"\
             "else if test ${reboot_mode} = cold_boot; then "\
-                    "setenv reboot_mode_android ""normal"";"\
                     "run storeargs;"\
             "else if test ${reboot_mode} = fastboot; then "\
-                "setenv reboot_mode_android ""normal"";"\
-                "run storeargs;"\
-                "fastboot;"\
-            "fi;fi;fi;fi;fi;"\
+					"fastboot;"\
+            "fi;fi;fi;"\
             "\0" \
         "storeboot="\
-            "kbi resetflag 0;"\
             "boot_cooling;"\
             "cfgload;" \
-            "if load mmc 0:1 1020000 s905_autoscript || load mmc 1:1 1020000 s905_autoscript || load mmc 1:5 1020000 /boot/s905_autoscript; then autoscr 1020000; fi;"\
-            "ext4load mmc 1:5 1080000 zImage;ext4load mmc 1:5 10000000 uInitrd;ext4load mmc 1:5 20000000 dtb.img;booti 1080000 10000000 20000000;"\
-            "for p in 1 2 3 4 5 6 7 8 9 A B C D E F 10 11 12 13 14 15 16 17 18; do if fatload mmc 1:${p} ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi; done;"\
-            "run update;"\
-            "\0"\
-        "factory_reset_poweroff_protect="\
-            "echo wipe_data=${wipe_data}; echo wipe_cache=${wipe_cache};"\
-            "if test ${wipe_data} = failed; then "\
-                "run init_display; run storeargs;"\
-                "if mmcinfo; then "\
-                    "run recovery_from_sdcard;"\
-                "fi;"\
-                "if usb start 0; then "\
-                    "run recovery_from_udisk;"\
-                "fi;"\
-                "run recovery_from_flash;"\
-            "fi; "\
-            "if test ${wipe_cache} = failed; then "\
-                "run init_display; run storeargs;"\
-                "if mmcinfo; then "\
-                    "run recovery_from_sdcard;"\
-                "fi;"\
-                "if usb start 0; then "\
-                    "run recovery_from_udisk;"\
-                "fi;"\
-                "run recovery_from_flash;"\
-            "fi; \0" \
-         "update="\
-            /*first usb burning, second sdc_burn, third ext-sd autoscr/recovery, last udisk autoscr/recovery*/\
-            "kbi lcd_reset; "\
-            "run usb_burning; "\
-            "run sdc_burning; "\
-            "if mmcinfo; then "\
-                "run recovery_from_sdcard;"\
-            "fi;"\
-            "if usb start 0; then "\
-                "run recovery_from_udisk;"\
-            "fi;"\
-            "run recovery_from_flash;"\
-            "\0"\
-        "recovery_from_sdcard="\
-            "if fatload mmc 0 ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi;"\
-            "if fatload mmc 0 ${loadaddr} recovery.img; then "\
-                    "if fatload mmc 0 ${dtb_mem_addr} dtb.img; then echo sd dtb.img loaded; fi;"\
-                    "wipeisb; "\
-                    "bootm ${loadaddr};fi;"\
-            "\0"\
-        "recovery_from_udisk="\
-            "if fatload usb 0 ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi;"\
-            "if fatload usb 0 ${loadaddr} recovery.img; then "\
-                "if fatload usb 0 ${dtb_mem_addr} dtb.img; then echo udisk dtb.img loaded; fi;"\
-                "wipeisb; "\
-                "bootm ${loadaddr};fi;"\
-            "\0"\
-        "recovery_from_flash="\
-            "get_valid_slot;"\
-            "echo active_slot: ${active_slot};"\
-            "if test ${active_slot} = normal; then "\
-                "setenv bootargs ${bootargs} aml_dt=${aml_dt} recovery_part={recovery_part} recovery_offset={recovery_offset};"\
-                "if imgread kernel ${recovery_part} ${loadaddr} ${recovery_offset}; then wipeisb; bootm ${loadaddr}; fi;"\
-            "else "\
-                "setenv bootargs ${bootargs} aml_dt=${aml_dt} recovery_part=${boot_part} recovery_offset=${recovery_offset};"\
-                "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-            "fi;"\
             "\0"\
         "init_display="\
             "get_rebootmode;"\
@@ -257,34 +150,12 @@
                 "fi;"\
                 "osd open;"\
                 "osd clear;"\
-                "if load mmc 0:1 ${loadaddr} /boot-logo.bmp || load mmc 0:2 ${loadaddr} /usr/share/fenix/logo/logo.bmp || load mmc 1:2 ${loadaddr} /usr/share/fenix/logo/logo.bmp || load mmc 1:5 ${loadaddr} /usr/share/fenix/logo/logo.bmp; then "\
+                "if load mmc 0:1 ${loadaddr} /boot-logo.bmp; then "\
                     "bmp display ${loadaddr};"\
                     "bmp scale;"\
                 "fi;"\
                 "vout output ${outputmode};"\
                 "vpp hdrpkt;"\
-            "fi;"\
-            "\0"\
-        "wol_init="\
-            "kbi init;"\
-            "kbi powerstate;"\
-            "kbi trigger wol r;"\
-            "setenv bootargs ${bootargs} wol_enable=${wol_enable};"\
-            "if test ${power_state} = 1; then "\
-                "kbi poweroff;"\
-            "else "\
-                "kbi wolreset;"\
-            "fi;"\
-            "\0"\
-        "port_mode_change="\
-            "fdt addr ${dtb_mem_addr}; "\
-            "kbi portmode r;"\
-            "if test ${port_mode} = 0; then "\
-                "fdt set /usb3phy@ffe09080 status okay;"\
-                "fdt set /pcieA@fc000000 status disable;"\
-            "else "\
-                "fdt set /usb3phy@ffe09080 status disable;"\
-                "fdt set /pcieA@fc000000 status okay;"\
             "fi;"\
             "\0"\
         "cmdline_keys="\
@@ -296,62 +167,12 @@
                     "setenv bootargs ${bootargs} androidboot.serialno=1234567890;"\
                     "setenv serial 1234567890;"\
                 "fi;"\
-                "kbi ethmac;"\
-                "setenv bootargs ${bootargs} mac=${eth_mac} androidboot.mac=${eth_mac};"\
-                "if keyman read deviceid ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.deviceid=${deviceid};"\
-                "fi;"\
             "fi;"\
-            "\0"\
-        "bcb_cmd="\
-            "get_avb_mode;"\
-            "get_valid_slot;"\
-            "\0"\
-        "upgrade_key="\
-            "if gpio input GPIOAO_7; then "\
-                "echo detect upgrade key;"\
-                "gpio set GPIOAO_4;"\
-                "run fan_stop;"\
-                "run update;"\
-            "fi;"\
-            "\0"\
-	    "irremote_update="\
-            "if irkey 2500000 0xe31cfb04 0xb748fb04; then "\
-                "echo read irkey ok!; " \
-                "if itest ${irkey_value} == 0xe31cfb04; then " \
-                    "run update;" \
-                "else if itest ${irkey_value} == 0xb748fb04; then " \
-                    "run update;\n" \
-			    "fi;fi;" \
-            "fi;\0" \
-        "updateu="\
-            "tftp 1080000 u-boot.bin;"\
-            "mmc dev 1;"\
-            "store rom_write 1080000 0 ${filesize}"\
-            "\0" \
-        "vim3_check="\
-            "kbi hwver; "\
-            "if test ${hwver} != Unknow; then " \
-                "echo Product checking: pass! Hardware version: ${hwver};" \
-            "else " \
-                "echo Product checking: fail!; sleep 5; reboot;" \
-            "fi;" \
-            "setenv bootargs ${bootargs} hwver=${hwver};"\
-            "\0"\
-        "fan_stop=" \
-            "i2c mw 0x18 0x88 0" \
             "\0"\
 
 #define CONFIG_PREBOOT  \
-            "run upgrade_check;"\
             "run init_display;"\
-            "run storeargs;"\
-            "run upgrade_key;"\
-            "run vim3_check;" \
-            "run wol_init;"\
-            "run port_mode_change;"\
-            "forceupdate;" \
-            "run fan_stop;"
+            "run storeargs;"
 
 #define CONFIG_BOOTCOMMAND "run storeboot"
 
@@ -376,7 +197,7 @@
 #define CONFIG_DDR_FULL_TEST			0 //0:disable, 1:enable. ddr full test
 #define CONFIG_CMD_DDR_D2PLL			0 //0:disable, 1:enable. d2pll cmd
 #define CONFIG_CMD_DDR_TEST				0 //0:disable, 1:enable. ddrtest cmd
-#define CONFIG_CMD_DDR_TEST_G12         1 //0:disable, 1:enable. G12 ddrtest cmd
+#define CONFIG_CMD_DDR_TEST_G12        0 //0:disable, 1:enable. G12 ddrtest cmd
 #define CONFIG_DDR_LOW_POWER			0 //0:disable, 1:enable. ddr clk gate for lp
 #define CONFIG_DDR_ZQ_PD				0 //0:disable, 1:enable. ddr zq power down
 #define CONFIG_DDR_USE_EXT_VREF			0 //0:disable, 1:enable. ddr use external vref
@@ -385,7 +206,7 @@
 #define CONFIG_DDR_NONSEC_SCRAMBLE		0 //0:disable, 1:enable. non-sec region scramble function
 
 /* storage: emmc/nand/sd */
-#define		CONFIG_STORE_COMPATIBLE 1
+#define CONFIG_ENV_IS_IN_MMC			1
 #define 	CONFIG_ENV_OVERWRITE
 #define 	CONFIG_CMD_SAVEENV
 /* fixme, need fix*/
@@ -501,13 +322,12 @@
 //#define CONFIG_VPU_CLK_LEVEL_DFT 7
 
 /* DISPLAY & HDMITX */
-#define CONFIG_AML_HDMITX20 1
-#define CONFIG_AML_CANVAS 1
-#define CONFIG_AML_VOUT 1
-#define CONFIG_AML_OSD 1
-#define CONFIG_AML_MINUI 1
-#define CONFIG_OSD_SCALE_ENABLE 1
-#define CONFIG_CMD_BMP 1
+#define CONFIG_AML_HDMITX20			1
+#define CONFIG_AML_CANVAS			1
+#define CONFIG_AML_VOUT				1
+#define CONFIG_AML_OSD				1
+#define CONFIG_OSD_SCALE_ENABLE			1
+#define CONFIG_CMD_BMP				1
 
 #if defined(CONFIG_AML_VOUT)
 #define CONFIG_AML_CVBS 1
@@ -551,22 +371,13 @@
 
 //UBOOT fastboot config
 #define CONFIG_CMD_FASTBOOT 1
-#define CONFIG_FASTBOOT_FLASH_MMC_DEV 1
+#define CONFIG_FASTBOOT_FLASH_MMC_DEV 0
 #define CONFIG_FASTBOOT_FLASH 1
 #define CONFIG_USB_GADGET 1
 #define CONFIG_USBDOWNLOAD_GADGET 1
 #define CONFIG_SYS_CACHELINE_SIZE 64
 #define CONFIG_FASTBOOT_MAX_DOWN_SIZE	0x8000000
-#define CONFIG_DEVICE_PRODUCT	"KHADAS"
-
-//UBOOT Facotry usb/sdcard burning config
-#define CONFIG_AML_V2_FACTORY_BURN              1       //support facotry usb burning
-#define CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE   1       //support factory sdcard burning
-#define CONFIG_POWER_KEY_NOT_SUPPORTED_FOR_BURN 1       //There isn't power-key for factory sdcard burning
-#define CONFIG_SD_BURNING_SUPPORT_UI            1       //Displaying upgrading progress bar when sdcard/udisk burning
-
-#define CONFIG_AML_SECURITY_KEY                 1
-#define CONFIG_UNIFY_KEY_MANAGE                 1
+#define CONFIG_DEVICE_PRODUCT	"BANANAPI_M2S"
 
 /* net */
 #define CONFIG_CMD_NET   1
@@ -578,7 +389,7 @@
 	#define CONFIG_CMD_PING 1
 	#define CONFIG_CMD_DHCP 1
 	#define CONFIG_CMD_RARP 1
-	#define CONFIG_HOSTNAME        KVIM3
+	#define CONFIG_HOSTNAME        Bananapi
 //	#define CONFIG_RANDOM_ETHADDR  1				   /* use random eth addr, or default */
 	#define CONFIG_ETHADDR         00:15:18:01:81:31   /* Ethernet address */
 	#define CONFIG_IPADDR          192.168.1.200          /* Our ip address */
@@ -591,7 +402,7 @@
 /* I2C DM driver*/
 //#define CONFIG_DM_I2C
 #if defined(CONFIG_DM_I2C)
-#define CONFIG_SYS_I2C_MESON		1
+#define CONFIG_SYS_I2C_MESON		0
 #else
 #define CONFIG_SYS_I2C_AML			1
 #define CONFIG_SYS_I2C_SPEED		400000
@@ -646,7 +457,7 @@
 #define CONFIG_NEED_BL32	1
 #define CONFIG_CMD_RSVMEM	1
 #define CONFIG_FIP_IMG_SUPPORT	1
-#define CONFIG_BOOTDELAY	1 //delay 1s
+#define CONFIG_BOOTDELAY	3 //delay 1s
 #define CONFIG_SYS_LONGHELP 1
 #define CONFIG_CMD_MISC     1
 #define CONFIG_CMD_ITEST    1
@@ -679,8 +490,6 @@
 //#define CONFIG_AML_CRYPTO_IMG       1
 
 #endif //CONFIG_AML_SECURE_UBOOT
-
-#define CONFIG_SECURE_STORAGE 1
 
 //build with uboot auto test
 //#define CONFIG_AML_UBOOT_AUTO_TEST 1

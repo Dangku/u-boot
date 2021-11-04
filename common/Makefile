@@ -57,11 +57,11 @@ obj-$(CONFIG_ENV_IS_IN_NAND) += env_nand.o
 obj-$(CONFIG_ENV_IS_IN_AMLNAND) += env_amlnand.o
 ifneq ($(CONFIG_SPI_BOOT),y)
 obj-$(CONFIG_STORE_COMPATIBLE) += env_mmc.o env_storage.o
-ifdef CONFIG_ENV_IS_IN_NAND
-obj-y += env_nand.o
-else
-obj-y += env_amlnand.o
-endif
+#ifdef CONFIG_ENV_IS_IN_NAND
+#obj-y += env_nand.o
+#else
+#obj-y += env_amlnand.o
+#endif
 endif
 obj-$(CONFIG_ENV_IS_IN_NVRAM) += env_nvram.o
 obj-$(CONFIG_ENV_IS_IN_ONENAND) += env_onenand.o
@@ -87,7 +87,7 @@ obj-$(CONFIG_CMD_CBFS) += cmd_cbfs.o
 obj-$(CONFIG_CMD_CLK) += cmd_clk.o
 obj-$(CONFIG_CMD_CONSOLE) += cmd_console.o
 obj-$(CONFIG_CMD_SARADC) += cmd_saradc.o
-obj-$(CONFIG_CMD_SARADC) += cmd_forceupdate.o
+#obj-$(CONFIG_CMD_SARADC) += cmd_forceupdate.o
 obj-$(CONFIG_CMD_CPLBINFO) += cmd_cplbinfo.o
 obj-$(CONFIG_DATAFLASH_MMC_SELECT) += cmd_dataflash_mmc_mux.o
 obj-$(CONFIG_CMD_DATE) += cmd_date.o
@@ -337,8 +337,8 @@ obj-y += cmd_disk.o
 obj-y += cmd_vpp.o
 
 # Khadas commands
-obj-$(CONFIG_KHADAS_CFGLOAD)  += cmd_cfgload.o
-obj-$(CONFIG_KHADAS_SCRIPT) += cmd_script.o
+obj-y += cmd_cfgload.o
+obj-y += cmd_script.o
 
 # amlogic commands
 obj-$(CONFIG_CMD_REBOOT) += cmd_reboot.o
@@ -359,7 +359,9 @@ obj-$(CONFIG_CMD_AML_MTEST) += cmd_testsmpcache.o
 obj-$(CONFIG_AML_ANTIROLLBACK) += anti-rollback.o
 obj-$(CONFIG_AML_SUPPORT_TLV) += aml_tlv.o
 obj-y += cmd_tee_log_level.o
+ifdef CONFIG_CMD_BOOTCTOL_AVB
 obj-y += cmd_avb.o
+endif
 
 # khadas commands
 obj-$(CONFIG_KHADAS_KBI) += cmd_kbi.o

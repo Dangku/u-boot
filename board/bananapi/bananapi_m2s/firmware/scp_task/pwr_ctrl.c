@@ -1,6 +1,5 @@
-
 /*
- * board/khadas/kvim3/firmware/scp_task/pwr_ctrl.c
+ * board/bananapi/bananapi_m2s/firmware/scp_task/pwr_ctrl.c
  *
  * Copyright (C) 2018 Amlogic, Inc. All rights reserved.
  *
@@ -24,8 +23,14 @@
 #ifdef CONFIG_CEC_WAKEUP
 #include <cec_tx_reg.h>
 #endif
+#ifdef CONFIG_GPIO_WAKEUP
+#include <gpio_key.h>
+#endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+unsigned int enable_wol = 0;   /* disable Wake-On-Lan by default*/
+unsigned int enable_5V_system_power = 0;	/* disable 5V system power (USB) by default*/
 
 static void set_vddee_voltage(unsigned int target_voltage)
 {
@@ -63,18 +68,31 @@ static void set_vddee_voltage(unsigned int target_voltage)
 
 static void power_off_at_24M(unsigned int suspend_from)
 {
-	/*set gpioH_8 low to power off vcc 5v*/
-	writel(readl(PREG_PAD_GPIO3_EN_N) & (~(1 << 8)), PREG_PAD_GPIO3_EN_N);
-	writel(readl(PERIPHS_PIN_MUX_C) & (~(0xf)), PERIPHS_PIN_MUX_C);
+	uart_puts("power_off_at_24M\n");
+	
+	/* set gpioAO_8 output/low to set sd_power off */
+	writel(readl(AO_GPIO_O) & (~(1 << 8)), AO_GPIO_O);
+	writel(readl(AO_GPIO_O_EN_N) & (~(1 << 8)), AO_GPIO_O_EN_N);
+	writel(readl(AO_RTI_PIN_MUX_REG1) & (~(0xf << 0)), AO_RTI_PIN_MUX_REG1);
+	
+	if (!enable_5V_system_power)
+	{
+		/*set gpioH_8 low to power off vcc 5v*/
+		writel(readl(PREG_PAD_GPIO3_EN_N) & (~(1 << 8)), PREG_PAD_GPIO3_EN_N);
+		writel(readl(PERIPHS_PIN_MUX_C) & (~(0xf)), PERIPHS_PIN_MUX_C);
+	}
 
 	/*set gpioao_4 low to power off vcck_a*/
 	writel(readl(AO_GPIO_O) & (~(1 << 4)), AO_GPIO_O);
 	writel(readl(AO_GPIO_O_EN_N) & (~(1 << 4)), AO_GPIO_O_EN_N);
 	writel(readl(AO_RTI_PIN_MUX_REG) & (~(0xf << 16)), AO_RTI_PIN_MUX_REG);
-	/*set test_n low to power off vcck_b & vcc 3.3v*/
-	writel(readl(AO_GPIO_O) & (~(1 << 31)), AO_GPIO_O);
-	writel(readl(AO_GPIO_O_EN_N) & (~(1 << 31)), AO_GPIO_O_EN_N);
-	writel(readl(AO_RTI_PIN_MUX_REG1) & (~(0xf << 28)), AO_RTI_PIN_MUX_REG1);
+
+	if (!enable_5V_system_power && !enable_wol) {
+		/*set test_n low to power off vcck_b & vcc 3.3v*/
+		writel(readl(AO_GPIO_O) & (~(1 << 31)), AO_GPIO_O);
+		writel(readl(AO_GPIO_O_EN_N) & (~(1 << 31)), AO_GPIO_O_EN_N);
+		writel(readl(AO_RTI_PIN_MUX_REG1) & (~(0xf << 28)), AO_RTI_PIN_MUX_REG1);
+	}
 
 	/*step down ee voltage*/
 	set_vddee_voltage(CONFIG_VDDEE_SLEEP_VOLTAGE);
@@ -82,115 +100,39 @@ static void power_off_at_24M(unsigned int suspend_from)
 
 static void power_on_at_24M(unsigned int suspend_from)
 {
+	uart_puts("power_on_at_24M\n");
+	
 	/*step up ee voltage*/
 	set_vddee_voltage(CONFIG_VDDEE_INIT_VOLTAGE);
 
-	/*set test_n high to power on vcck_b & vcc 3.3v*/
-	writel(readl(AO_GPIO_O) | (1 << 31), AO_GPIO_O);
-	writel(readl(AO_GPIO_O_EN_N) & (~(1 << 31)), AO_GPIO_O_EN_N);
-	writel(readl(AO_RTI_PIN_MUX_REG1) & (~(0xf << 28)), AO_RTI_PIN_MUX_REG1);
-	_udelay(100);
+	/* set gpioAO_8 output/high to set sd_power on */
+	writel(readl(AO_GPIO_O) | (1 << 8), AO_GPIO_O);
+	writel(readl(AO_GPIO_O_EN_N) | (1 << 8), AO_GPIO_O_EN_N);
+	writel(readl(AO_RTI_PIN_MUX_REG1) & (~(0xf << 0)), AO_RTI_PIN_MUX_REG1);
+	if (!enable_5V_system_power && !enable_wol) {
+		/*set test_n high to power on vcck_b & vcc 3.3v*/
+		writel(readl(AO_GPIO_O) | (1 << 31), AO_GPIO_O);
+		writel(readl(AO_GPIO_O_EN_N) & (~(1 << 31)), AO_GPIO_O_EN_N);
+		writel(readl(AO_RTI_PIN_MUX_REG1) & (~(0xf << 28)), AO_RTI_PIN_MUX_REG1);
+		_udelay(100);
+	}
+
 	/*set gpioao_4 high to power on vcck_a*/
 	writel(readl(AO_GPIO_O) | (1 << 4), AO_GPIO_O);
 	writel(readl(AO_GPIO_O_EN_N) & (~(1 << 4)), AO_GPIO_O_EN_N);
 	writel(readl(AO_RTI_PIN_MUX_REG) & (~(0xf << 16)), AO_RTI_PIN_MUX_REG);
 	_udelay(100);
-	/*set gpioH_8 low to power on vcc 5v*/
-	writel(readl(PREG_PAD_GPIO3_EN_N) | (1 << 8), PREG_PAD_GPIO3_EN_N);
-	writel(readl(PERIPHS_PIN_MUX_C) & (~(0xf)), PERIPHS_PIN_MUX_C);
+
+	if (!enable_5V_system_power)
+	{
+		/*set gpioH_8 high to power on vcc 5v*/
+		writel(readl(PREG_PAD_GPIO3_EN_N) | (1 << 8), PREG_PAD_GPIO3_EN_N);
+		writel(readl(PERIPHS_PIN_MUX_C) & (~(0xf)), PERIPHS_PIN_MUX_C);
+	}
 	_udelay(10000);
 
 }
 
-static void set_gpio_level(int pin, int high)
-{
-	//pin 0: sda 1: scl
-	if (pin == 1)
-	{
-		if (high == 1)
-		{
-			writel(readl(AO_GPIO_O) | (1 << 2), AO_GPIO_O);
-			writel(readl(AO_GPIO_O_EN_N) & (~(1 << 2)), AO_GPIO_O_EN_N);
-		}
-		else
-		{
-			writel(readl(AO_GPIO_O) & (~(1 << 2)), AO_GPIO_O);
-			writel(readl(AO_GPIO_O_EN_N) & (~(1 << 2)), AO_GPIO_O_EN_N);
-		}
-	writel(readl(AO_RTI_PIN_MUX_REG) & (~(0xf << 8)), AO_RTI_PIN_MUX_REG);
-	}
-	else
-
-	{
-		if (high == 1)
-		{
-			writel(readl(AO_GPIO_O) | (1 << 3), AO_GPIO_O);
-			writel(readl(AO_GPIO_O_EN_N) & (~(1 << 3)), AO_GPIO_O_EN_N);
-		}
-		else
-		{
-			writel(readl(AO_GPIO_O) & (~(1 << 3)), AO_GPIO_O);
-			writel(readl(AO_GPIO_O_EN_N) & (~(1 << 3)), AO_GPIO_O_EN_N);
-		}
-	writel(readl(AO_RTI_PIN_MUX_REG) & (~(0xf << 12)), AO_RTI_PIN_MUX_REG);
-	}
-}
-
-static void i2c_start(void)
-{
-	set_gpio_level(0, 1); //sda high
-	_udelay(1);
-	set_gpio_level(1, 1); //scl high
-	_udelay(1);
-	set_gpio_level(0, 0); //sda low
-	_udelay(1);
-}
-
-static void i2c_stop(void)
-{
-	set_gpio_level(1, 0); //scl low
-	_udelay(2);
-	set_gpio_level(1, 1); //scl high
-	_udelay(2);
-	set_gpio_level(0, 0); //sda low
-	_udelay(2);
-	set_gpio_level(0, 1); //sda high
-	_udelay(1);
-}
-
-static void i2c_send(unsigned char data)
-{
-	unsigned char i = 0;
-	for(; i < 8 ; i++)
-	{
-		set_gpio_level(1, 0); //scl low
-		_udelay(1);
-		if (data & 0x80)
-			set_gpio_level(0, 1); //sda high
-		else
-			set_gpio_level(0, 0); //sda low
-		data <<= 1;
-		_udelay(1);
-		set_gpio_level(1, 1); //scl high
-		_udelay(1);
-	}
-	_udelay(3);
-	set_gpio_level(1, 0);
-	_udelay(2);
-	set_gpio_level(1, 1);
-	_udelay(3);
-}
-
-static void power_off_at_mcu(unsigned int shutdown)
-{
-	if(shutdown == 0) {
-		i2c_start();
-		i2c_send(0x30);
-		i2c_send(0x80);
-		i2c_send(0x01);
-		i2c_stop();
-	}
-}
 void get_wakeup_source(void *response, unsigned int suspend_from)
 {
 	struct wakeup_info *p = (struct wakeup_info *)response;
@@ -199,33 +141,37 @@ void get_wakeup_source(void *response, unsigned int suspend_from)
 	unsigned i = 0;
 
 	p->status = RESPONSE_OK;
-	val = (POWER_KEY_WAKEUP_SRC | AUTO_WAKEUP_SRC | REMOTE_WAKEUP_SRC |
-	       BT_WAKEUP_SRC);
+	val = ( AUTO_WAKEUP_SRC | ETH_PHY_GPIO_SRC | RTC_WAKEUP_SRC);
+
+#ifdef CONFIG_CEC_WAKEUP
+	val |= CECB_WAKEUP_SRC;
+#endif
 
 	p->sources = val;
 
-	/* Power Key: AO_GPIO[7]*/
+	/* Power Key: AO_GPIO[3]*/
 	gpio = &(p->gpio_info[i]);
 	gpio->wakeup_id = POWER_KEY_WAKEUP_SRC;
-	gpio->gpio_in_idx = GPIOAO_7;
+	gpio->gpio_in_idx = GPIOAO_3;
 	gpio->gpio_in_ao = 1;
 	gpio->gpio_out_idx = -1;
 	gpio->gpio_out_ao = -1;
 	gpio->irq = IRQ_AO_GPIO0_NUM;
 	gpio->trig_type = GPIO_IRQ_FALLING_EDGE;
 	p->gpio_info_count = ++i;
-#ifdef CONFIG_BT_WAKEUP
-	gpio = &(p->gpio_info[i]);
-	gpio->wakeup_id = BT_WAKEUP_SRC;
-	gpio->gpio_in_idx = GPIOX_18;
-	gpio->gpio_in_ao = 0;
-	gpio->gpio_out_idx = -1;
-	gpio->gpio_out_ao = -1;
-	gpio->irq = IRQ_GPIO1_NUM;
-	gpio->trig_type	= GPIO_IRQ_FALLING_EDGE;
-	p->gpio_info_count = ++i;
-#endif
 
+	if (enable_wol) {
+		/* Ethernet: GPIOZ_14 */
+		gpio = &(p->gpio_info[i]);
+		gpio->wakeup_id = ETH_PHY_GPIO_SRC;
+		gpio->gpio_in_idx = GPIOZ_14;
+		gpio->gpio_in_ao = 0;
+		gpio->gpio_out_idx = -1;
+		gpio->gpio_out_ao = -1;
+		gpio->irq = IRQ_GPIO1_NUM;
+		gpio->trig_type = GPIO_IRQ_FALLING_EDGE;
+		p->gpio_info_count = ++i;
+	}
 }
 extern void __switch_idle_task(void);
 
@@ -233,9 +179,19 @@ static unsigned int detect_key(unsigned int suspend_from)
 {
 	int exit_reason = 0;
 	unsigned *irq = (unsigned *)WAKEUP_SRC_IRQ_ADDR_BASE;
+#ifdef CONFIG_ADC_KEY
+	unsigned char adc_key_cnt = 0;
+#endif
+
+#ifdef CONFIG_GPIO_WAKEUP
+	unsigned int is_gpiokey = 0;
+#endif
+
 #ifdef CONFIG_REMOTE_WAKEUP
+	backup_remote_register();
 	init_remote();
 #endif
+
 #ifdef CONFIG_CEC_WAKEUP
 		if (hdmi_cec_func_config & 0x1) {
 			remote_cec_hw_reset();
@@ -243,14 +199,21 @@ static unsigned int detect_key(unsigned int suspend_from)
 		}
 #endif
 
+#ifdef CONFIG_GPIO_WAKEUP
+	is_gpiokey = init_gpio_key();
+#endif
+
 	do {
-		#ifdef CONFIG_CEC_WAKEUP
-		if (irq[IRQ_AO_CECB] == IRQ_AO_CEC2_NUM) {
-			irq[IRQ_AO_CECB] = 0xFFFFFFFF;
-			if (cec_power_on_check())
-				exit_reason = CEC_WAKEUP;
+#ifdef CONFIG_CEC_WAKEUP
+		if (!cec_msg.log_addr)
+			cec_node_init();
+		else {
+			if (readl(AO_CECB_INTR_STAT) & CECB_IRQ_RX_EOM) {
+				if (cec_power_on_check())
+					exit_reason = CEC_WAKEUP;
+			}
 		}
-		#endif
+#endif
 #ifdef CONFIG_REMOTE_WAKEUP
 		if (irq[IRQ_AO_IR_DEC] == IRQ_AO_IR_DEC_NUM) {
 			irq[IRQ_AO_IR_DEC] = 0xFFFFFFFF;
@@ -259,48 +222,60 @@ static unsigned int detect_key(unsigned int suspend_from)
 		}
 #endif
 
+#ifdef CONFIG_ADC_KEY
+		if (irq[IRQ_AO_TIMERA] == IRQ_AO_TIMERA_NUM) {
+			irq[IRQ_AO_TIMERA] = 0xFFFFFFFF;
+			saradc_enable();
+			if (check_adc_key_resume()) {
+				adc_key_cnt++;
+				/*using variable 'adc_key_cnt' to eliminate the dithering of the key*/
+				if (2 == adc_key_cnt)
+					exit_reason = POWER_KEY_WAKEUP;
+			} else {
+				adc_key_cnt = 0;
+			}
+			saradc_disable();
+		}
+#endif
+		if (enable_wol && (irq[IRQ_GPIO1] == IRQ_GPIO1_NUM)) {
+			irq[IRQ_GPIO1] = 0xFFFFFFFF;
+			if (!(readl(PREG_PAD_GPIO4_I) & (0x01 << 14))
+					&& (readl(PREG_PAD_GPIO4_EN_N) & (0x01 << 14)))
+				exit_reason = ETH_PHY_GPIO;
+		}
+
 		if (irq[IRQ_VRTC] == IRQ_VRTC_NUM) {
+			uart_puts("rtc alarm trigger\n");
 			irq[IRQ_VRTC] = 0xFFFFFFFF;
 			exit_reason = RTC_WAKEUP;
 		}
 
-		if (irq[IRQ_AO_GPIO0] == IRQ_AO_GPIO0_NUM) {
-			irq[IRQ_AO_GPIO0] = 0xFFFFFFFF;
-			if ((readl(AO_GPIO_I) & (1<<7)) == 0)
-				exit_reason = POWER_KEY_WAKEUP;
-		}
-#ifdef CONFIG_BT_WAKEUP
-		if (irq[IRQ_GPIO1] == IRQ_GPIO1_NUM) {
-			irq[IRQ_GPIO1] = 0xFFFFFFFF;
-			if (!(readl(PREG_PAD_GPIO2_I) & (0x01 << 18))
-				&& (readl(PREG_PAD_GPIO2_O) & (0x01 << 17))
-				&& !(readl(PREG_PAD_GPIO2_EN_N) & (0x01 << 17)))
-				exit_reason = BT_WAKEUP;
-		}
-#endif
 		if (irq[IRQ_ETH_PTM] == IRQ_ETH_PMT_NUM) {
 			irq[IRQ_ETH_PTM]= 0xFFFFFFFF;
 			exit_reason = ETH_PMT_WAKEUP;
 		}
 
-		if (suspend_from) {
-			if (!(readl(PREG_PAD_GPIO4_I) & (0x01 << 14))) {
-				exit_reason = WOL_WAKEUP;
-			}
+#ifdef CONFIG_GPIO_WAKEUP
+		if (is_gpiokey) {
+			if (gpio_detect_key())
+				exit_reason = GPIO_WAKEUP;
 		}
-
+#endif
 		if (exit_reason)
 			break;
 		else
 			__switch_idle_task();
 	} while (1);
 
+#ifdef CONFIG_REMOTE_WAKEUP
+	restore_remote_register();
+#endif
+
 	return exit_reason;
 }
 
 static void pwr_op_init(struct pwr_op *pwr_op)
 {
-	pwr_op->power_off_at_mcu = power_off_at_mcu;
 	pwr_op->power_off_at_24M = power_off_at_24M;
 	pwr_op->power_on_at_24M = power_on_at_24M;
 	pwr_op->detect_key = detect_key;

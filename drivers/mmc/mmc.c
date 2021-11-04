@@ -1854,7 +1854,11 @@ static int mmc_complete_init(struct mmc *mmc)
 
 int mmc_init(struct mmc *mmc)
 {
+#ifdef CONFIG_STORE_COMPATIBLE
 	int err = IN_PROGRESS, i;
+#else
+	int err = IN_PROGRESS;
+#endif
 	unsigned start;
 
 	if (mmc->has_init)
@@ -1876,8 +1880,9 @@ int mmc_init(struct mmc *mmc)
 	printf("[%s] mmc init success\n", __func__);
 	if (mmc->block_dev.dev == CONFIG_SYS_MMC_ENV_DEV)  {
 		device_boot_flag = EMMC_BOOT_FLAG;
+#ifdef CONFIG_SECURE_STORAGE
 		secure_storage_set_info(STORAGE_DEV_EMMC);
-
+#endif
 	}
 #ifdef CONFIG_STORE_COMPATIBLE
 	info_disprotect |= DISPROTECT_KEY;

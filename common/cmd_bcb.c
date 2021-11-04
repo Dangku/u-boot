@@ -27,12 +27,14 @@ Description:
 #include <asm/arch/io.h>
 
 #ifdef CONFIG_BOOTLOADER_CONTROL_BLOCK
+#if defined(CONFIG_STORE_COMPATIBLE)
 extern int store_read_ops(
     unsigned char *partition_name,
     unsigned char * buf, uint64_t off, uint64_t size);
 extern int store_write_ops(
     unsigned char *partition_name,
     unsigned char * buf, uint64_t off, uint64_t size);
+#endif
 
 #define COMMANDBUF_SIZE 32
 #define STATUSBUF_SIZE      32
@@ -66,6 +68,7 @@ struct bootloader_message {
 
 static int clear_misc_partition(char *clearbuf, int size)
 {
+#if defined(CONFIG_STORE_COMPATIBLE)
     char *partition = "misc";
 
     memset(clearbuf, 0, size);
@@ -74,6 +77,7 @@ static int clear_misc_partition(char *clearbuf, int size)
         printf("failed to clear %s.\n", partition);
         return -1;
     }
+#endif
 
     return 0;
 }
@@ -114,32 +118,41 @@ static int do_RunBcbCommand(
         printf("Start to write --wipe_data to %s\n", partition);
         memcpy(miscbuf, CMD_RUN_RECOVERY, sizeof(CMD_RUN_RECOVERY));
         memcpy(miscbuf+sizeof(command)+sizeof(status), "recovery\n--wipe_data", sizeof("recovery\n--wipe_data"));
+#if defined(CONFIG_STORE_COMPATIBLE)
         store_write_ops((unsigned char *)partition, (unsigned char *)miscbuf, 0, sizeof(miscbuf));
+#endif
     } else if (!memcmp(command_mark, CMD_SYSTEM_CRASH, strlen(command_mark))) {
         printf("Start to write --system_crash to %s\n", partition);
         memcpy(miscbuf, CMD_RUN_RECOVERY, sizeof(CMD_RUN_RECOVERY));
         memcpy(miscbuf+sizeof(command)+sizeof(status), "recovery\n--system_crash", sizeof("recovery\n--system_crash"));
+#if defined(CONFIG_STORE_COMPATIBLE)
         store_write_ops((unsigned char *)partition, (unsigned char *)miscbuf, 0, sizeof(miscbuf));
+#endif
     } else if (!memcmp(command_mark, CMD_RESIZE_DATA, strlen(command_mark))) {
         printf("Start to write --resize2fs_data to %s\n", partition);
         memcpy(miscbuf, CMD_RUN_RECOVERY, sizeof(CMD_RUN_RECOVERY));
         memcpy(miscbuf+sizeof(command)+sizeof(status), "recovery\n--resize2fs_data", sizeof("recovery\n--resize2fs_data"));
-        store_write_ops((unsigned char *)partition, (unsigned char *)miscbuf, 0, sizeof(miscbuf));
+#if defined(CONFIG_STORE_COMPATIBLE)
+		store_write_ops((unsigned char *)partition, (unsigned char *)miscbuf, 0, sizeof(miscbuf));
+#endif
     } else if (!memcmp(command_mark, CMD_FOR_RECOVERY, strlen(CMD_FOR_RECOVERY))) {
         memcpy(miscbuf, CMD_RUN_RECOVERY, sizeof(CMD_RUN_RECOVERY));
         sprintf(recovery, "%s%s", "recovery\n--", command_mark);
         memcpy(miscbuf+sizeof(command)+sizeof(status), recovery, strlen(recovery));
+#if defined(CONFIG_STORE_COMPATIBLE)
         store_write_ops((unsigned char *)partition, (unsigned char *)miscbuf, 0, sizeof(miscbuf));
+#endif
         return 0;
     }
 
     printf("Start read %s partition datas!\n", partition);
+#if defined(CONFIG_STORE_COMPATIBLE)
     if (store_read_ops((unsigned char *)partition,
         (unsigned char *)miscbuf, 0, sizeof(miscbuf)) < 0) {
         printf("failed to store read %s.\n", partition);
         goto ERR;
     }
-
+#endif
     // judge misc partition whether has datas
     char tmpbuf[MISCBUF_SIZE];
     memset(tmpbuf, 0, sizeof(tmpbuf));

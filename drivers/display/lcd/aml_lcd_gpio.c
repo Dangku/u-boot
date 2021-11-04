@@ -90,6 +90,7 @@ unsigned int aml_lcd_gpio_input_get(int gpio)
 	return value;
 }
 
+#ifdef CONFIG_TCA6408
 int aml_lcd_expander_gpio_name_map_num(const char *name)
 {
 	int gpio;
@@ -144,4 +145,4 @@ int aml_lcd_expander_gpio_set(int gpio, int value)
 
 	return 0;
 }
-
+#endif
