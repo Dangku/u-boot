@@ -347,8 +347,8 @@ static void board_mmc_power_enable(void)
 int board_mmc_init(bd_t	*bis)
 {
 	board_mmc_power_enable();
-	board_mmc_register(SDIO_PORT_B);
-	board_mmc_register(SDIO_PORT_C);
+	board_mmc_register(SDIO_PORT_B);  //sd
+	board_mmc_register(SDIO_PORT_C);  //emmc
 	return 0;
 }
 #endif
@@ -415,20 +415,14 @@ int board_early_init_f(void){
 
 static void gpio_set_vbus_power(char is_power_on)
 {
-	int ret;
-
-	ret = gpio_request(CONFIG_USB_GPIO_PWR,
-		CONFIG_USB_GPIO_PWR_NAME);
-	if (ret && ret != -EBUSY) {
-		printf("gpio: requesting pin %u failed\n",
-			CONFIG_USB_GPIO_PWR);
-		return;
-	}
-
 	if (is_power_on) {
-		gpio_direction_output(CONFIG_USB_GPIO_PWR, 1);
+		/* set gpioH_8 output/external pull high to power on vbus */
+		writel(readl(PREG_PAD_GPIO3_EN_N) | (1 << 8), PREG_PAD_GPIO3_EN_N);
+		writel(readl(PERIPHS_PIN_MUX_C) & (~(0xf)), PERIPHS_PIN_MUX_C);
 	} else {
-		gpio_direction_output(CONFIG_USB_GPIO_PWR, 0);
+		/* set gpioH_8 low to power off vbus */
+		writel(readl(PREG_PAD_GPIO3_EN_N) & (~(1 << 8)), PREG_PAD_GPIO3_EN_N);
+		writel(readl(PERIPHS_PIN_MUX_C) & (~(0xf)), PERIPHS_PIN_MUX_C);
 	}
 }
 
