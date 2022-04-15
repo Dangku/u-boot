@@ -38,11 +38,14 @@ static int valid_command(const char* p)
 
 /* Read boot.ini from FAT partition
  */
+#define MAX_DEV_NUM		2
 static char* read_cfgload(void)
 {
 	char cmd[128];
 	unsigned long filesize;
 	char *p;
+
+	const char *device_pairs[MAX_DEV_NUM] = {"mmc", "usb"};
 	const char *partition_pairs[][2] = {
 	    //partition		 boot.ini
 		{"0:1", 		"/boot.ini"},
@@ -53,32 +56,47 @@ static char* read_cfgload(void)
 	};
 	int partition_array_len = sizeof(partition_pairs) / sizeof(partition_pairs[0]);
 	int i = 0;
+	int j = 0;
 	char magic[32];
+	char buf[64] = {0};
 	int size;
 
 	p = (char *)simple_strtoul(getenv("loadaddr"), NULL, 16);
 	if (NULL == p)
 		p = (char *)CONFIG_SYS_LOAD_ADDR;
 
-	for (i=0; i<partition_array_len; i++) {
-		setenv("filesize", "0");
-		printf("cfgload: reading %s from mmc %s ...\n", partition_pairs[i][1], partition_pairs[i][0]);
-		sprintf(cmd, "load mmc %s 0x%p %s", partition_pairs[i][0], (void *)p, partition_pairs[i][1]);
-		run_command(cmd, 0);
+	for (j=0; j<MAX_DEV_NUM; j++) {
+		/* set devtype for bootscript use */
+		sprintf(buf, "setenv devtype %s", device_pairs[j]);
+		run_command(buf, 0);
 
-		filesize = getenv_ulong("filesize", 16, 0);
-		if (0 != filesize)
-			break;
+		for (i=0; i<partition_array_len; i++) {
+			/* set devno for bootscript use */
+			if (i<2)
+				setenv("devno", "0");
+			else
+				setenv("devno", "1");
 
-		printf("cfgload: no %s or empty file on mmc %s\n", partition_pairs[i][1], partition_pairs[i][0]);
+			setenv("filesize", "0");
+			printf("cfgload: reading %s from %s %s ...\n", partition_pairs[i][1], device_pairs[j], partition_pairs[i][0]);
+			sprintf(cmd, "load %s %s 0x%p %s", device_pairs[j], partition_pairs[i][0], (void *)p, partition_pairs[i][1]);
+			run_command(cmd, 0);
+
+			filesize = getenv_ulong("filesize", 16, 0);
+			if (0 != filesize)
+				goto got_bootscript;
+
+			printf("cfgload: no %s or empty file on %s %s\n", partition_pairs[i][1], device_pairs[j], partition_pairs[i][0]);
+		}
 	}
 
-	if (i == partition_array_len) {
+	if (i == partition_array_len && j == MAX_DEV_NUM) {
 		printf("cfgload: failed to read boot.ini on all partitions!\n");
 
 		return NULL;
 	}
 
+got_bootscript:
 	if (filesize > SZ_BOOTINI) {
 		printf("cfgload: 'boot.ini' exceeds %d, size=%ld\n",
 				SZ_BOOTINI, filesize);
