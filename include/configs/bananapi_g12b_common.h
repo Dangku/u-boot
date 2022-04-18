@@ -10,6 +10,7 @@
 #define __BANANAPI_G12B_COMMON_H__
 
 #include <asm/arch/cpu.h>
+#include <linux/sizes.h>
 
 #define CONFIG_SYS_GENERIC_BOARD  1
 #ifndef CONFIG_AML_MESON
@@ -163,8 +164,15 @@
 
 #define CONFIG_BOOTCOMMAND "run storeboot"
 
-//#define CONFIG_ENV_IS_NOWHERE  1
-#define CONFIG_ENV_SIZE   (64*1024)
+#define CONFIG_BOOTAREA_SIZE			(1 * SZ_1M)
+#define CONFIG_MBR_SIZE				512
+#define CONFIG_ENV_SIZE				(64 * SZ_1K)
+#define CONFIG_UBOOT_SIZE			(CONFIG_BOOTAREA_SIZE - \
+		(CONFIG_MBR_SIZE + CONFIG_ENV_SIZE))
+#define CONFIG_PTABLE_SIZE			(4 * SZ_1K)
+#define CONFIG_ENV_OFFSET			(CONFIG_MBR_SIZE + CONFIG_UBOOT_SIZE)
+#define CONFIG_PTABLE_OFFSET			(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
+
 #define CONFIG_FIT 1
 #define CONFIG_OF_LIBFDT 1
 #define CONFIG_ANDROID_BOOT_IMAGE 1
@@ -334,37 +342,38 @@
 #endif
 
 /* PWM DM driver*/
-#define CONFIG_DM_PWM
-#define CONFIG_PWM_MESON
+//#define CONFIG_DM_PWM
+//#define CONFIG_PWM_MESON
 
-#define CONFIG_EFUSE 1
+//#define CONFIG_EFUSE 1
 
 /* commands */
 #define CONFIG_CMD_CACHE 1
 #define CONFIG_CMD_BOOTI 1
+#define CONFIG_CMD_BOOTM			1
+#if defined(CONFIG_EFUSE)
 #define CONFIG_CMD_EFUSE 1
+#endif
 #define CONFIG_CMD_I2C 1
 #define CONFIG_CMD_MEMORY 1
 #define CONFIG_CMD_FAT 1
 #define CONFIG_CMD_EXT2 1
 #define CONFIG_CMD_EXT4 1
 #define CONFIG_CMD_GPIO 1
-#define CONFIG_CMD_RUN
+#define CONFIG_CMD_RUN  1
 #define CONFIG_CMD_REBOOT 1
 #define CONFIG_CMD_ECHO 1
 #define CONFIG_CMD_JTAG	1
 #define CONFIG_CMD_AUTOSCRIPT 1
 #define CONFIG_CMD_MISC 1
 #define CONFIG_CMD_BDI 1
-#define CONFIG_CMD_PLLTEST 1
-#define CONFIG_CMD_ENV_EXISTS 1
 #define CONFIG_CMD_FS_GENERIC 1
-#define CONFIG_CMD_PART 1
+#define CONFIG_CMD_CHIPID	1
 
 /*file system*/
 #define CONFIG_DOS_PARTITION 1
 #define CONFIG_EFI_PARTITION 1
-#define CONFIG_AML_PARTITION 1
+#define CONFIG_MPT_PARTITION 1
 #define CONFIG_MMC 1
 #define CONFIG_FS_FAT 1
 #define CONFIG_FS_EXT4 1
@@ -393,7 +402,6 @@
 
 #define CONFIG_CMDLINE_EDITING 1
 #define CONFIG_AUTO_COMPLETE 1
-#define CONFIG_CMD_CHIPID 1
 
 /* debug mode defines */
 //#define CONFIG_DEBUG_MODE           1
@@ -430,8 +438,8 @@
 
 /* Choose One of Ethernet Type */
 #undef CONFIG_ETHERNET_NONE
+#undef ETHERNET_INTERNAL_PHY
 #define ETHERNET_EXTERNAL_PHY
-#undef  ETHERNET_INTERNAL_PHY
 
 /* u-boot memory test */
 #define CONFIG_CMD_MEMTEST

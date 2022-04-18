@@ -134,8 +134,6 @@ endif
 			--bl30 $(buildtree)/fip/bl30_new.bin.enc \
 			--bl31 $(buildtree)/fip/bl31.$(BL3X_SUFFIX).enc \
 			--bl33 $(buildtree)/fip/bl33.bin.enc \
-			--ddrfw1 $(buildsrc)/fip/$(SOC)/ddr4_1d.fw \
-			--ddrfw2 $(buildsrc)/fip/$(SOC)/ddr4_2d.fw \
 			--ddrfw4 $(buildsrc)/fip/$(SOC)/piei.fw \
 			--ddrfw5 $(buildsrc)/fip/$(SOC)/lpddr4_1d.fw \
 			--ddrfw6 $(buildsrc)/fip/$(SOC)/lpddr4_2d.fw \

@@ -87,7 +87,9 @@ obj-$(CONFIG_CMD_CBFS) += cmd_cbfs.o
 obj-$(CONFIG_CMD_CLK) += cmd_clk.o
 obj-$(CONFIG_CMD_CONSOLE) += cmd_console.o
 obj-$(CONFIG_CMD_SARADC) += cmd_saradc.o
-#obj-$(CONFIG_CMD_SARADC) += cmd_forceupdate.o
+ifndef CONFIG_BANANAPI_COMMON
+obj-$(CONFIG_CMD_SARADC) += cmd_forceupdate.o
+endif
 obj-$(CONFIG_CMD_CPLBINFO) += cmd_cplbinfo.o
 obj-$(CONFIG_DATAFLASH_MMC_SELECT) += cmd_dataflash_mmc_mux.o
 obj-$(CONFIG_CMD_DATE) += cmd_date.o
@@ -130,8 +132,10 @@ obj-$(CONFIG_CMD_HASH) += cmd_hash.o
 obj-$(CONFIG_CMD_IDE) += cmd_ide.o
 obj-$(CONFIG_CMD_IMMAP) += cmd_immap.o
 
+ifndef CONFIG_BANANAPI_COMMON
 ifdef CONFIG_CMD_INI
 obj-y += ini/model.o ini/ini_proxy.o ini/UnifyKey.o ini/ini_platform.o ini/ini_io.o ini/ini_handler.o ini/ini_core.o ini/ini_log.o
+endif
 endif
 obj-$(CONFIG_CMD_INI) += cmd_ini.o
 
