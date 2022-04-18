@@ -39,8 +39,6 @@
 /* configs for CEC */
 #define CONFIG_CEC_OSD_NAME		"Bananapi"
 #define CONFIG_CEC_WAKEUP
-/*if use bt-wakeup,open it*/
-#define CONFIG_BT_WAKEUP
 /* SMP Definitinos */
 #define CPU_RELEASE_ADDR		secondary_boot_func
 
@@ -187,23 +185,17 @@
 /* cpu */
 #define CONFIG_CPU_CLK					1200 //MHz. Range: 360-2000, should be multiple of 24
 
-/* ATTENTION */
-/* DDR configs move to board/amlogic/[board]/firmware/timing.c */
-
-//#define CONFIG_DDR_AUTO_DTB             1
-
 #define CONFIG_NR_DRAM_BANKS			1
+
 /* ddr functions */
 #define CONFIG_DDR_FULL_TEST			0 //0:disable, 1:enable. ddr full test
 #define CONFIG_CMD_DDR_D2PLL			0 //0:disable, 1:enable. d2pll cmd
 #define CONFIG_CMD_DDR_TEST				0 //0:disable, 1:enable. ddrtest cmd
-#define CONFIG_CMD_DDR_TEST_G12        0 //0:disable, 1:enable. G12 ddrtest cmd
 #define CONFIG_DDR_LOW_POWER			0 //0:disable, 1:enable. ddr clk gate for lp
 #define CONFIG_DDR_ZQ_PD				0 //0:disable, 1:enable. ddr zq power down
 #define CONFIG_DDR_USE_EXT_VREF			0 //0:disable, 1:enable. ddr use external vref
 #define CONFIG_DDR4_TIMING_TEST			0 //0:disable, 1:enable. ddr4 timing test function
 #define CONFIG_DDR_PLL_BYPASS			0 //0:disable, 1:enable. ddr pll bypass function
-#define CONFIG_DDR_NONSEC_SCRAMBLE		0 //0:disable, 1:enable. non-sec region scramble function
 
 /* storage: emmc/nand/sd */
 #define CONFIG_ENV_IS_IN_MMC			1
@@ -215,60 +207,6 @@
 #error env in amlnand/mmc already be compatible;
 #endif
 
-/*
-*				storage
-*		|---------|---------|
-*		|					|
-*		emmc<--Compatible-->nand
-*					|-------|-------|
-*					|				|
-*					MTD<-Exclusive->NFTL
-*/
-/* axg only support slc nand */
-/* swither for mtd nand which is for slc only. */
-/* support for mtd */
-//#define CONFIG_AML_MTD 1
-
-#ifdef CONFIG_AML_MTD
-
-/* bootlaoder is construct by bl2 and fip
- * when DISCRETE_BOOTLOADER is enabled, bl2 & fip
- * will not be stored continuously, and nand layout
- * would be bl2|rsv|fip|normal, but not
- * bl2|fip|rsv|noraml anymore
- */
-#define CONFIG_DISCRETE_BOOTLOADER
-
-#ifdef  CONFIG_DISCRETE_BOOTLOADER
-#define CONFIG_TPL_SIZE_PER_COPY          0x200000
-#define CONFIG_TPL_COPY_NUM               4
-#define CONFIG_TPL_PART_NAME              "tpl"
-/* for bl2, restricted by romboot */
-//SKT 1024 pages only support 4 block, so 4 copies
-#define CONFIG_BL2_COPY_NUM               4
-#endif /* CONFIG_DISCRETE_BOOTLOADER */
-
-#define CONFIG_MTD_DEVICE y
-/* mtd parts of ourown.*/
-#define CONFIFG_AML_MTDPART	1
-/* mtd parts by env default way.*/
-/*
-#define MTDIDS_NAME_STR		"aml_nand.0"
-#define MTDIDS_DEFAULT		"nand1=" MTDIDS_NAME_STR
-#define MTDPARTS_DEFAULT	"mtdparts=" MTDIDS_NAME_STR ":" \
-					"3M@8192K(logo),"	\
-					"10M(recovery),"	\
-					"8M(kernel),"	\
-					"40M(rootfs),"	\
-					"-(data)"
-*/
-#define CONFIG_CMD_UBI
-#define CONFIG_CMD_UBIFS
-#define CONFIG_RBTREE
-#define CONFIG_CMD_MTDPARTS   1
-#define CONFIG_MTD_PARTITIONS 1
-#endif
-/* endof CONFIG_AML_MTD */
 #define		CONFIG_AML_SD_EMMC 1
 #ifdef		CONFIG_AML_SD_EMMC
 	#define 	CONFIG_GENERIC_MMC 1
@@ -280,7 +218,6 @@
 #endif
 #define		CONFIG_PARTITIONS 1
 #define 	CONFIG_SYS_NO_FLASH  1
-//#define     CONFIG_AML_GPT
 
 /* meson SPI */
 #define CONFIG_AML_SPIFC
@@ -310,7 +247,7 @@
 	#define CONFIG_BL2_SIZE (64 * 1024)
 #endif
 
-#if defined CONFIG_AML_MTD || defined CONFIG_SPI_NAND
+#if defined(CONFIG_SPI_NAND)
 	#define CONFIG_MTD_DEVICE y
 	#define CONFIG_RBTREE
 	#define CONFIG_CMD_MTDPARTS   1
@@ -421,6 +358,8 @@
 #define CONFIG_CMD_I2C 1
 #define CONFIG_CMD_MEMORY 1
 #define CONFIG_CMD_FAT 1
+#define CONFIG_CMD_EXT2 1
+#define CONFIG_CMD_EXT4 1
 #define CONFIG_CMD_GPIO 1
 #define CONFIG_CMD_RUN
 #define CONFIG_CMD_REBOOT 1
@@ -429,8 +368,6 @@
 #define CONFIG_CMD_AUTOSCRIPT 1
 #define CONFIG_CMD_MISC 1
 #define CONFIG_CMD_PLLTEST 1
-#define CONFIG_CMD_EXT4 1
-#define CONFIG_CMD_EXT2 1
 #define CONFIG_CMD_ENV_EXISTS 1
 #define CONFIG_CMD_FS_GENERIC 1
 #define CONFIG_CMD_PART 1
@@ -479,7 +416,7 @@
 //support secure boot
 #define CONFIG_AML_SECURE_UBOOT   1
 
-#if defined(CONFIG_AML_SECURE_UBOOT)
+#ifdef CONFIG_AML_SECURE_UBOOT
 
 //unify build for generate encrypted bootloader "u-boot.bin.encrypt"
 #define CONFIG_AML_CRYPTO_UBOOT   1
