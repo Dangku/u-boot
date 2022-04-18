@@ -14,5 +14,4 @@
 
 const char *boot_device_name(int n);
 int get_boot_device(void);
-int board_current_mmc(void);
 #endif

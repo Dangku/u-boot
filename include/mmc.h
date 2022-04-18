@@ -542,4 +542,8 @@ int mmc_ffu_op(int dev, u64 ffu_ver, void *addr, u64 cnt);
 #define CONFIG_SYS_MMC_MAX_BLK_COUNT 65535
 #endif
 
+#if defined(CONFIG_BANANAPI_COMMON)
+int board_current_mmc(void);
+#endif
+
 #endif /* _MMC_H_ */
