@@ -1,6 +1,6 @@
 
 /*
- * board/bananapi/bananapi_m2s/eth_setup.c
+ * board/bananapi/bananapi-common/eth_setup.c
  *
  * Copyright (C) 2018 Amlogic, Inc. All rights reserved.
  *
@@ -26,26 +26,28 @@
 #include <fdt_support.h>
 #include <libfdt.h>
 #include <asm/arch/eth_setup.h>
+
 /*
- *
- *setup eth device board socket
- *
+ * setup eth device board socket
  */
-struct eth_board_socket* eth_board_setup(char *name){
+struct eth_board_socket* eth_board_setup(char *name)
+{
 	struct eth_board_socket* new_board;
-	new_board= (struct eth_board_socket*) malloc(sizeof(struct eth_board_socket));
-	if (NULL == new_board) return NULL;
+
+	new_board = (struct eth_board_socket*)malloc(sizeof(struct eth_board_socket));
+	if (NULL == new_board)
+		return NULL;
+
 	if (name != NULL) {
-		new_board->name=(char*)malloc(strlen(name));
-		strncpy(new_board->name,name,strlen(name));
+		new_board->name = (char*)malloc(strlen(name));
+		strncpy(new_board->name, name, strlen(name));
 	}else{
-		new_board->name="gxb";
+		new_board->name = "gxb";
 	}
 
-	new_board->eth_pinmux_setup=NULL ;
-	new_board->eth_clock_configure=NULL;
-	new_board->eth_hw_reset=NULL;
+	new_board->eth_pinmux_setup = NULL ;
+	new_board->eth_clock_configure = NULL;
+	new_board->eth_hw_reset = NULL;
+
 	return new_board;
 }
-//pinmux   HHI_GCLK_MPEG1[bit 3]
-//
