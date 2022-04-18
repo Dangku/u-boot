@@ -1,3 +1,7 @@
+config BANANAPI_COMMON
+        bool
+        default y
+
 config BANANAPI_M2S
 	bool "Support Bananapi M2S board"
 	default n
