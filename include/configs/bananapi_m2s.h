@@ -507,6 +507,13 @@
 #define ETHERNET_EXTERNAL_PHY
 #undef  ETHERNET_INTERNAL_PHY
 
+/* u-boot memory test */
+#define CONFIG_CMD_MEMTEST
+#ifdef CONFIG_CMD_MEMTEST
+#define CONFIG_SYS_MEMTEST_START		(128 << 20)	/* 128MB */
+#define CONFIG_SYS_MEMTEST_END			(2048 << 20)	/* 2GB */
+#endif
+
 #define CONFIG_HIGH_TEMP_COOL 90
 #endif
 
