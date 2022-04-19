@@ -19,7 +19,7 @@ fi
 [ ! -f "$UBOOT" ] && abort "error: $UBOOT is not exist"
 
 sudo dd if="$UBOOT" of="$1" conv=fsync,notrunc bs=512 seek=1
-#sudo dd if=/dev/zero of="$1" conv=fsync,notrunc bs=512 seek=1920 count=128
+sudo dd if=/dev/zero of="$1" conv=fsync,notrunc bs=512 seek=1920 count=128
 
 sync
 
