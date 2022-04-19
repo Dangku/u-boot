@@ -629,6 +629,9 @@ static int spicc_xfer(
 	struct meson_spicc_device *spicc = dev_get_priv(bus);
 	int ret = 0;
 
+	/* bpi, no driver to set wordlen*/
+	slave->wordlen = spicc->wordlen;
+
 	spicc_dbg("slave %u:%u bitlen %u\n", bus->seq,
 			spi_chip_select(dev), bitlen);
 

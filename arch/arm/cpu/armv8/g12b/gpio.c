@@ -236,4 +236,17 @@ int spicc1_pinctrl_enable(bool enable)
 	writel(val, P_PERIPHS_PIN_MUX_B);
 	return 0;
 }
+
+int spicc0_pinctrl_enable(bool enable)
+{
+	unsigned int val;
+
+	val = readl(P_PERIPHS_PIN_MUX_4);
+	val &= ~(0xf0ff << 0);
+	if (enable)
+		val |= 0x4044 << 0;
+	writel(val, P_PERIPHS_PIN_MUX_4);
+	return 0;
+}
+
 #endif /* CONFIG_AML_SPICC */
