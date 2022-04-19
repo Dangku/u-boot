@@ -14,7 +14,7 @@
 
 /* configs for CEC */
 #define CONFIG_CEC_OSD_NAME		"BANANAPI_M2S"
-#define CONFIG_CEC_WAKEUP
+//#define CONFIG_CEC_WAKEUP
 
 
 #include "bananapi_g12b_common.h"
