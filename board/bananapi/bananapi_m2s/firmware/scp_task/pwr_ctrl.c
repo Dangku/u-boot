@@ -23,9 +23,6 @@
 #ifdef CONFIG_CEC_WAKEUP
 #include <cec_tx_reg.h>
 #endif
-#ifdef CONFIG_GPIO_WAKEUP
-#include <gpio_key.h>
-#endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -183,10 +180,6 @@ static unsigned int detect_key(unsigned int suspend_from)
 	unsigned char adc_key_cnt = 0;
 #endif
 
-#ifdef CONFIG_GPIO_WAKEUP
-	unsigned int is_gpiokey = 0;
-#endif
-
 #ifdef CONFIG_REMOTE_WAKEUP
 	backup_remote_register();
 	init_remote();
@@ -199,15 +192,11 @@ static unsigned int detect_key(unsigned int suspend_from)
 		}
 #endif
 
-#ifdef CONFIG_GPIO_WAKEUP
-	is_gpiokey = init_gpio_key();
-#endif
-
 	do {
 #ifdef CONFIG_CEC_WAKEUP
-		if (!cec_msg.log_addr)
+		if (!cec_msg.log_addr) {
 			cec_node_init();
-		else {
+		} else {
 			if (readl(AO_CECB_INTR_STAT) & CECB_IRQ_RX_EOM) {
 				if (cec_power_on_check())
 					exit_reason = CEC_WAKEUP;
@@ -255,12 +244,7 @@ static unsigned int detect_key(unsigned int suspend_from)
 			exit_reason = ETH_PMT_WAKEUP;
 		}
 
-#ifdef CONFIG_GPIO_WAKEUP
-		if (is_gpiokey) {
-			if (gpio_detect_key())
-				exit_reason = GPIO_WAKEUP;
-		}
-#endif
+
 		if (exit_reason)
 			break;
 		else

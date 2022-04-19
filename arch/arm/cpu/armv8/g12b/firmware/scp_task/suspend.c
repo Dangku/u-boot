@@ -65,8 +65,10 @@ void enter_suspend(unsigned int suspend_from)
 	if (p_pwr_op->power_off_at_24M)
 		p_pwr_op->power_off_at_24M(suspend_from);
 
+#ifdef CONFIG_KHADAS_KBI
 	if (p_pwr_op->power_off_at_mcu)
 		p_pwr_op->power_off_at_mcu(suspend_from);
+#endif
 
 	exit_reason = p_pwr_op->detect_key(suspend_from);
 
