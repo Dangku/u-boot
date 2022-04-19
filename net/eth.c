@@ -201,7 +201,7 @@ static inline int eth_get_efuse_mac(struct eth_device *dev)
 		return -EINVAL;
 	}
 
-	printf("\MACADDR: (from efuse)mac: %s\n", buf);
+	printf("\nMACADDR: (from efuse)mac: %s\n", buf);
 
 	int i;
 	char s[3];
@@ -246,7 +246,7 @@ int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 		if (get_chip_id(&buff[0], sizeof(buff)) == 0) {
 			sprintf((char *)env_enetaddr,"02:%02x:%02x:%02x:%02x:%02x",buff[8],
 				buff[7],buff[6],buff[5],buff[4]);
-			printf("MACADDR:%s(from chipid)\n",env_enetaddr);
+			printf("\nMACADDR:%s(from chipid)\n",env_enetaddr);
 			setenv("ethaddr",(const char *)env_enetaddr);
 		}
 
