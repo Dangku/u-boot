@@ -26,6 +26,18 @@
 #error CONFIG_ENV_SIZE_REDUND should be the same as CONFIG_ENV_SIZE
 #endif
 
+#if defined(CONFIG_BANANAPI_COMMON)
+#define env_name_spec		mmc_env_name_spec
+#if !defined(CONFIG_STORE_COMPATIBLE)
+#define saveenv			mmc_saveenv
+#define env_init		mmc_env_init
+#define env_relocate_spec	mmc_env_relocate_spec
+#endif
+#endif
+
+#undef CONFIG_SYS_MMC_ENV_DEV
+#define CONFIG_SYS_MMC_ENV_DEV	board_current_mmc()
+
 #ifndef CONFIG_STORE_COMPATIBLE
 char *env_name_spec = "MMC";
 #ifdef ENV_IS_EMBEDDED
@@ -54,6 +66,8 @@ __weak int mmc_get_env_addr(struct mmc *mmc, int copy, u32 *env_addr)
 	if (copy)
 		offset = CONFIG_ENV_OFFSET_REDUND;
 #endif
+
+	printf("mmc env offset: 0x%llx \n",offset);
 
 #else /* CONFIG_STORE_COMPATIBLE */
 	part_info = find_mmc_partition_by_name(name);
@@ -366,3 +380,12 @@ err:
 #endif
 }
 #endif /* CONFIG_ENV_OFFSET_REDUND */
+
+#if defined(CONFIG_BANANAPI_COMMON)
+struct env_proxy env_proxy_mmc = {
+	.env_name_spec_cb = &mmc_env_name_spec,
+	.env_init_cb = mmc_env_init,
+	.saveenv_cb = mmc_saveenv,
+	.env_relocate_spec_cb = mmc_env_relocate_spec,
+};
+#endif
