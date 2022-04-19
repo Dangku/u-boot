@@ -1,1 +1,1 @@
-obj-y += board.o eth_setup.o
+obj-y += board.o eth_setup.o adc.o

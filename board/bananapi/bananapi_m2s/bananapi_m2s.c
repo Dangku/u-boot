@@ -63,6 +63,7 @@
 #include <amlogic/spicc.h>
 #endif
 #include <asm/arch/timer.h>
+#include <bananapi-common.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -625,14 +626,17 @@ int board_late_init(void)
 	lcd_probe();
 #endif
 
-
-
 	cpu_id_t cpu_id = get_cpu_id();
 	if (cpu_id.family_id == MESON_CPU_MAJOR_ID_G12B) {
 		char cmd[16];
 		setenv("maxcpus","6");
 		sprintf(cmd, "%X", cpu_id.chip_rev);
 		setenv("chiprev", cmd);
+	}
+
+	if (board_is_bananapi_m2s()) {
+		printf("BPI: board is Bananapi M2S\n");
+		setenv("board", "bananapi_m2s");
 	}
 	return 0;
 }
