@@ -354,6 +354,10 @@
 //#define CONFIG_PWM_MESON
 
 //#define CONFIG_EFUSE 1
+#if defined(CONFIG_EFUSE)
+#define CONFIG_EFUSE_MAC			1
+#define CONFIG_EFUSE_SN				1
+#endif
 
 /* commands */
 #define CONFIG_CMD_CACHE 1
