@@ -65,6 +65,7 @@
 #define CONFIG_SYS_MAXARGS  64
 #define CONFIG_EXTRA_ENV_SETTINGS \
         "jtag=disable\0"\
+        "mmc_list=0 1\0"\
         "loadaddr=1080000\0"\
         "panel_type=lcd_0\0" \
         "outputmode=panel\0" \
@@ -138,10 +139,12 @@
                 "fi;"\
                 "osd open;"\
                 "osd clear;"\
-                "if load mmc 0:1 ${loadaddr} /boot-logo.bmp; then "\
-                    "bmp display ${loadaddr};"\
-                    "bmp scale;"\
-                "fi;"\
+                "for n in ${mmc_list}; do "\
+                    "if load mmc ${n} ${loadaddr} /boot-logo.bmp; then "\
+                        "bmp display ${loadaddr};"\
+                        "bmp scale;"\
+                    "fi;"\
+                "done;"\
                 "vout output ${outputmode};"\
                 "vpp hdrpkt;"\
             "fi;"\
