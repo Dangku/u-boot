@@ -2,6 +2,7 @@
 #include <asm/io.h>
 #include <asm/arch/secure_apb.h>
 #include <linux/kernel.h>
+#include <asm/cpu_id.h>
 #include <bananapi-common.h>
 const char *boot_device_name(int n)
 {
@@ -64,6 +65,35 @@ static unsigned int get_hw_revision(void)
 	printf("ADC=%d, hwrev=0x%x\n", adc, hwrev);
 
 	return hwrev;
+}
+
+static void board_chip_id(void)
+{
+	int i;
+	uint8_t chipid[16];
+	char buf[16];
+
+	memset(chipid, 0, sizeof(chipid));
+	memset(buf, 0, sizeof(buf));
+
+	printf("chipid: ");
+
+	if (get_chip_id(chipid, sizeof(chipid)) == 0) {
+		for (i = 0; i < sizeof(chipid); i++)
+			sprintf(buf + 2 * i, "%02x", chipid[i]);
+	}
+	else {
+		printf("get chip id error\n");
+	}
+
+	printf("%s\n", buf);
+	setenv("chipid", buf);
+}
+
+void get_board_serial(void)
+{
+	board_chip_id();
+	setenv("serial", getenv("chipid"));
 }
 
 int board_revision(void)

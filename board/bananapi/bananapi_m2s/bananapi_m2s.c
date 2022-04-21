@@ -41,9 +41,6 @@
 #include <vpu.h>
 #endif
 #include <vpp.h>
-#ifdef CONFIG_AML_V2_FACTORY_BURN
-#include <amlogic/aml_v2_burning.h>
-#endif// #ifdef CONFIG_AML_V2_FACTORY_BURN
 #ifdef CONFIG_AML_HDMITX20
 #include <amlogic/hdmi.h>
 #endif
@@ -681,9 +678,12 @@ int board_late_init(void)
 		setenv("chiprev", cmd);
 	}
 
+    get_board_serial();
+
 	if (board_is_bananapi_m2s()) {
 		printf("BPI: board is Bananapi M2S\n");
 		setenv("board", "bananapi_m2s");
+        setenv("fdtfile", "bananapi_m2s.dtb");
 	}
 	return 0;
 }
