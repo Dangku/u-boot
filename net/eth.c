@@ -201,7 +201,7 @@ static inline int eth_get_efuse_mac(struct eth_device *dev)
 		return -EINVAL;
 	}
 
-	printf("\nMACADDR: (from efuse)mac: %s\n", buf);
+	printf("\nMACADDR:%s(from efuse)\n", buf);
 
 	int i;
 	char s[3];

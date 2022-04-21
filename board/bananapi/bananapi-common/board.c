@@ -2,6 +2,7 @@
 #include <asm/io.h>
 #include <asm/arch/secure_apb.h>
 #include <linux/kernel.h>
+#include <asm/arch/efuse.h>
 #include <asm/cpu_id.h>
 #include <bananapi-common.h>
 const char *boot_device_name(int n)
@@ -67,7 +68,32 @@ static unsigned int get_hw_revision(void)
 	return hwrev;
 }
 
-static void board_chip_id(void)
+#if defined(CONFIG_EFUSE_SN)
+int get_efuse_board_serial(void)
+{
+	char buf[EFUSE_BYTES];	// sn address buffer
+	uint32_t size = CONFIG_EFUSE_SN_LEN;
+	loff_t pos = CONFIG_EFUSE_SN_POS;	// offset of the first byte for sn address
+	int ret;
+
+	memset(buf, 0, sizeof(buf));
+
+	ret = efuse_read_usr(buf, size, &pos);
+	if (ret < 0) {
+		memset(buf, 0, sizeof(buf));
+		error("read serial from efuse failed\n");
+		return -EINVAL;
+	}
+
+	printf("serial:%s(from efuse)\n", buf);
+
+	setenv("serial", buf);
+
+	return 0;
+}
+#endif
+
+void board_chip_id(void)
 {
 	int i;
 	uint8_t chipid[16];
@@ -76,7 +102,6 @@ static void board_chip_id(void)
 	memset(chipid, 0, sizeof(chipid));
 	memset(buf, 0, sizeof(buf));
 
-	printf("chipid: ");
 
 	if (get_chip_id(chipid, sizeof(chipid)) == 0) {
 		for (i = 0; i < sizeof(chipid); i++)
@@ -86,14 +111,20 @@ static void board_chip_id(void)
 		printf("get chip id error\n");
 	}
 
+    printf("serial:%s(from chipid)\n", buf);
+
 	printf("%s\n", buf);
 	setenv("chipid", buf);
+	setenv("serial", buf);
 }
 
 void get_board_serial(void)
 {
+#if defined(CONFIG_EFUSE_SN)
+    get_efuse_board_serial();
+#else
 	board_chip_id();
-	setenv("serial", getenv("chipid"));
+#endif
 }
 
 int board_revision(void)

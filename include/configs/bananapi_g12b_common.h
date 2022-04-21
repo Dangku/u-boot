@@ -361,6 +361,14 @@
 #if defined(CONFIG_EFUSE)
 #define CONFIG_EFUSE_MAC			1
 #define CONFIG_EFUSE_SN				1
+#if defined(CONFIG_EFUSE_MAC)
+#define CONFIG_EFUSE_MAC_POS			0
+#define CONFIG_EFUSE_MAC_LEN			12
+#endif
+#if defined(CONFIG_EFUSE_SN)
+#define CONFIG_EFUSE_SN_POS			12
+#define CONFIG_EFUSE_SN_LEN			16
+#endif
 #endif
 
 /* commands */
