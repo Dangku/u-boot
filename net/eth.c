@@ -14,7 +14,6 @@
 #include <amlogic/keyunify.h>
 #include <net.h>
 #include <asm/cpu_id.h>
-#include <amlogic/keyunify.h>
 #ifdef CONFIG_RANDOM_ETHADDR
 #include <asm/arch/io.h>
 #include <asm/arch/secure_apb.h>

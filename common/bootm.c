@@ -862,6 +862,7 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 	const char	*fit_uname_config = NULL;
 	const char	*fit_uname_kernel = NULL;
 
+#if defined(CONFIG_CMD_BOOTCTOL_AVB)
 	char *avb_s;
 	avb_s = getenv("avb2");
 	if (avb_s == NULL) {
@@ -874,6 +875,7 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 		struct andr_img_hdr **tmp_img_hdr = (struct andr_img_hdr **)&buf;
 #endif
 	}
+#endif
 
 #if defined(CONFIG_FIT)
 	int		os_noffset;
@@ -963,6 +965,7 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 					     os_data, os_len))
 			return NULL;
 
+#if defined(CONFIG_CMD_BOOTCTOL_AVB)
 		if (strcmp(avb_s, "1") != 0) {
 #ifdef CONFIG_AML_ANTIROLLBACK
 			if (!check_antirollback((*tmp_img_hdr)->kernel_version)) {
@@ -971,6 +974,7 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 			}
 #endif
 		}
+#endif
 
 		break;
 #endif
