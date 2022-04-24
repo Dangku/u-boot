@@ -102,7 +102,6 @@
         "storeargs="\
             "setenv bootargs ${initargs} logo=${display_layer},loaded,${fb_addr} vout=${outputmode},enable hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} cvbsmode=${cvbsmode} osd_reverse=${osd_reverse} video_reverse=${video_reverse} jtag=${jtag}; "\
 	        "setenv bootargs ${bootargs} androidboot.hardware=amlogic reboot_mode=${reboot_mode} ddr_size=${ddr_size};"\
-            "run cmdline_keys;"\
             "\0"\
         "switch_bootmode="\
             "get_rebootmode;"\
@@ -147,17 +146,6 @@
                 "done;"\
                 "vout output ${outputmode};"\
                 "vpp hdrpkt;"\
-            "fi;"\
-            "\0"\
-        "cmdline_keys="\
-            "if keyman init 0x1234; then "\
-                "if keyman read usid ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
-                    "setenv serial ${usid};"\
-                "else "\
-                    "setenv bootargs ${bootargs} androidboot.serialno=1234567890;"\
-                    "setenv serial 1234567890;"\
-                "fi;"\
             "fi;"\
             "\0"\
 
