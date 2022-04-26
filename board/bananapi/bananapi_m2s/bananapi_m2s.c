@@ -82,6 +82,15 @@ int dram_init(void)
 	return 0;
 }
 
+int enableCameraVcc(void)
+{
+    /* set gpioa_13 high to enable lcd vcc*/
+    writel(readl(PREG_PAD_GPIO5_EN_N) & (~(1 << 13)), PREG_PAD_GPIO5_EN_N);
+    writel(readl(PREG_PAD_GPIO5_O) | (1 << 13), PREG_PAD_GPIO5_O);
+    writel(readl(PERIPHS_PIN_MUX_E) & (~(0xf << 20)), PERIPHS_PIN_MUX_E);
+    return 0;
+}
+
 /* secondary_boot_func
  * this function should be write with asm, here, is is only for compiling pass
  * */
@@ -669,6 +678,9 @@ int board_late_init(void)
 	board_lcd_detect();
 	lcd_probe();
 #endif
+
+    //enable camera power
+	enableCameraVcc();
 
 	cpu_id_t cpu_id = get_cpu_id();
 	if (cpu_id.family_id == MESON_CPU_MAJOR_ID_G12B) {
