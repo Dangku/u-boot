@@ -121,32 +121,25 @@
         "init_display="\
             "get_rebootmode;"\
             "echo reboot_mode:::: ${reboot_mode};"\
-            "if test ${reboot_mode} = quiescent; then "\
-                    "setenv reboot_mode_android ""quiescent"";"\
-                    "run storeargs;"\
-                    "setenv bootargs ${bootargs} androidboot.quiescent=1;"\
-                    "osd open;osd clear;"\
-            "else "\
-                "setenv reboot_mode_android ""normal"";"\
-                "run storeargs;"\
-                "hdmitx get_preferred_mode;"\
-                "hdmitx edid;"\
-                "hdmitx hpd;"\
-                "if test ${lcd_exist} = 1 && test ${outputmode} = panel; then "\
-                    "setenv fb_width 1088;"\
-                    "setenv fb_height 1920;"\
-                "fi;"\
-                "osd open;"\
-                "osd clear;"\
-                "for n in ${mmc_list}; do "\
-                    "if load mmc ${n} ${loadaddr} /boot-logo.bmp; then "\
-                        "bmp display ${loadaddr};"\
-                        "bmp scale;"\
-                    "fi;"\
-                "done;"\
-                "vout output ${outputmode};"\
-                "vpp hdrpkt;"\
+            "setenv reboot_mode_android ""normal"";"\
+            "run storeargs;"\
+            "hdmitx get_preferred_mode;"\
+            "hdmitx edid;"\
+            "hdmitx hpd;"\
+            "if test ${lcd_exist} = 1 && test ${outputmode} = panel; then "\
+                "setenv fb_width 1088;"\
+                "setenv fb_height 1920;"\
             "fi;"\
+            "osd open;"\
+            "osd clear;"\
+            "for n in ${mmc_list}; do "\
+                "if load mmc ${n} ${loadaddr} /boot-logo.bmp; then "\
+                    "bmp display ${loadaddr};"\
+                    "bmp scale;"\
+                "fi;"\
+            "done;"\
+            "vout output ${outputmode};"\
+            "vpp hdrpkt;"\
             "\0"\
 
 #define CONFIG_PREBOOT  \
