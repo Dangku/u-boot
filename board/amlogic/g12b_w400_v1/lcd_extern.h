@@ -499,6 +499,5 @@ static unsigned char ext_init_off_table_P070ACB_FT[LCD_EXTERN_INIT_OFF_MAX] = {
 	0xfd, 1, 150,  /* delay 150ms */
 	0xFF, 0,   /* ending flag */
 };
-
 #endif
 

@@ -22,52 +22,40 @@
 #endif
 
 static char lcd_cpu_gpio[LCD_CPU_GPIO_NUM_MAX][LCD_CPU_GPIO_NAME_MAX] = {
-	"GPIOA_6", /* panel rst */
+	"GPIOA_10", /* panel rst */
 	"GPIOA_9", /* panel power */
 	"invalid", /* ending flag */
 };
 
 static struct lcd_power_step_s lcd_power_on_step[] = {
-	{LCD_POWER_TYPE_CPU,   1,0,100,}, /* lcd power */
+	{LCD_POWER_TYPE_CPU,   1,1,40,}, /* lcd power */
 	{LCD_POWER_TYPE_CPU,   0,0,10,}, /* lcd_reset */
-	{LCD_POWER_TYPE_CPU,   0,1,20,}, /* lcd_reset */
+	{LCD_POWER_TYPE_CPU,   0,1,120,}, /* lcd_reset */
 	{LCD_POWER_TYPE_SIGNAL,0,0,0,},  /* signal */
 	{LCD_POWER_TYPE_MAX,   0,0,0,},  /* ending flag */
 };
 static struct lcd_power_step_s lcd_power_off_step[] = {
 	{LCD_POWER_TYPE_SIGNAL,0,0,50,},  /* signal */
 	{LCD_POWER_TYPE_CPU,   0,0,10,}, /* lcd_reset */
-	{LCD_POWER_TYPE_CPU,   1,1,100,}, /* power off */
-	{LCD_POWER_TYPE_MAX,   0,0,0,},   /* ending flag */
-};
-
-static struct lcd_power_step_s lcd_power_on_step_P070ACB[] = {
-	{LCD_POWER_TYPE_CPU,   1,0,200,}, /* lcd power */
-	{LCD_POWER_TYPE_SIGNAL,0,0,0,},  /* signal */
-	{LCD_POWER_TYPE_MAX,   0,0,0,},  /* ending flag */
-};
-static struct lcd_power_step_s lcd_power_off_step_P070ACB[] = {
-	{LCD_POWER_TYPE_SIGNAL,0,0,0,},  /* signal */
-	{LCD_POWER_TYPE_CPU,   0,0,20,}, /* lcd_reset */
-	{LCD_POWER_TYPE_CPU,   1,1,100,}, /* power off */
+	{LCD_POWER_TYPE_CPU,   1,0,100,}, /* power off */
 	{LCD_POWER_TYPE_MAX,   0,0,0,},   /* ending flag */
 };
 
 static char lcd_bl_gpio[BL_GPIO_NUM_MAX][LCD_CPU_GPIO_NAME_MAX] = {
-	"GPIOA_10", /* BL_EN */
+	"GPIOA_2", /* BL_EN */
 	"GPIOA_11", /* BL_PWM */
 	"invalid", /* ending flag */
 };
 
 struct ext_lcd_config_s ext_lcd_config[LCD_NUM_MAX] = {
-	{/* B080XAN01*/
+	{/* RXT101 */
 	"lcd_0",LCD_MIPI,8,
 	/* basic timing */
-	768,1024,948,1140,64,56,0,50,30,0,
+	800,1280,860,1334,20,20,0,16,18,0,
 	/* clk_attr */
-	0,0,1,64843200,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
+	0,0,1,68000000,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
 	/* mipi_attr */
-	4,550,0,1,0,2,1,0,Rsv_val,Rsv_val,
+	4,1000,0,1,0,2,1,0,Rsv_val,Rsv_val,
 	/* power step */
 	lcd_power_on_step, lcd_power_off_step,
 	/* backlight */
@@ -78,52 +66,16 @@ struct ext_lcd_config_s ext_lcd_config[LCD_NUM_MAX] = {
 	Rsv_val,Rsv_val,Rsv_val,Rsv_val,
 	10,10,Rsv_val},
 
-	{/* TL070WSH27*/
+	{/* AML101 */
 	"lcd_1",LCD_MIPI,8,
 	/* basic timing */
-	1024,600,1250,630,80,100,0,5,20,0,
+	1200,1920,1341,1981,1,60,0,1,25,0,
 	/* clk_attr */
-	0,0,1,47250000,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
+	0,0,1,160000000,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
 	/* mipi_attr */
-	4,300,0,1,0,2,1,0,Rsv_val,Rsv_val,
+	4,1000,0,1,0,2,1,0,Rsv_val,Rsv_val,
 	/* power step */
 	lcd_power_on_step, lcd_power_off_step,
-	/* backlight */
-	100,255,10,128,128,
-	BL_CTRL_PWM,0,1,0,200,200,
-	BL_PWM_NEGATIVE,BL_PWM_F,180,100,25,1,1,
-	Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
-	Rsv_val,Rsv_val,Rsv_val,Rsv_val,
-	10,10,Rsv_val},
-
-	{/* TL070HDV03CT*/
-	"lcd_2",LCD_MIPI,8,
-	/* basic timing */
-	720,1280,970,1364,10,120,0,4,40,0,
-	/* clk_attr */
-	0,0,1,79385000,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
-	/* mipi_attr */
-	4,500,0,1,0,2,1,0,Rsv_val,2,
-	/* power step */
-	lcd_power_on_step, lcd_power_off_step,
-	/* backlight */
-	100,255,10,128,128,
-	BL_CTRL_PWM,0,1,0,200,200,
-	BL_PWM_NEGATIVE,BL_PWM_F,180,100,25,1,1,
-	Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
-	Rsv_val,Rsv_val,Rsv_val,Rsv_val,
-	10,10,Rsv_val},
-
-	{/* P070ACB_FT*/
-	"lcd_3",LCD_MIPI,8,
-	/* basic timing */
-	600,1024,680,1194,24,36,0,10,80,0,
-	/* clk_attr */
-	0,0,1,48715200,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,Rsv_val,
-	/* mipi_attr */
-	4,400,0,1,0,2,0,0,Rsv_val,3,
-	/* power step */
-	lcd_power_on_step_P070ACB, lcd_power_off_step_P070ACB,
 	/* backlight */
 	100,255,10,128,128,
 	BL_CTRL_PWM,0,1,0,200,200,
@@ -148,7 +100,7 @@ static struct lcd_pinmux_ctrl_s lcd_pinmux_ctrl[LCD_PINMX_MAX] = {
 
 static struct lcd_pinmux_ctrl_s bl_pinmux_ctrl[BL_PINMUX_MAX] = {
 	{
-		.name = "bl_pwm_on_pin", //GPIOAO_6
+		.name = "bl_pwm_on_pin", //GPIOA_11
 		.pinmux_set = {{11, 0x00400000}, {LCD_PINMUX_END, 0x0}}, // TBD
 		.pinmux_clr = {{11, 0x00f00000}, {LCD_PINMUX_END, 0x0}}, //
 	},
@@ -157,14 +109,14 @@ static struct lcd_pinmux_ctrl_s bl_pinmux_ctrl[BL_PINMUX_MAX] = {
 	},
 };
 
-static unsigned char mipi_init_on_table[DSI_INIT_ON_MAX] = {//table size < 100
+static unsigned char mipi_init_on_table[DSI_INIT_ON_MAX] = {
 	0x05, 1, 0x11,
 	0xfd, 1, 20,
 	0x05, 1, 0x29,
 	0xfd, 1, 20,
 	0xff, 0,   //ending
 };
-static unsigned char mipi_init_off_table[DSI_INIT_OFF_MAX] = {//table size < 50
+static unsigned char mipi_init_off_table[DSI_INIT_OFF_MAX] = {
 	0x05, 1, 0x28,
 	0xfd, 1, 10,
 	0x05, 1, 0x10,
@@ -172,38 +124,324 @@ static unsigned char mipi_init_off_table[DSI_INIT_OFF_MAX] = {//table size < 50
 	0xff, 0,   //ending
 };
 
-static unsigned char mipi_init_on_table_TL070WSH27[DSI_INIT_ON_MAX] = {//table size < 100
-	0x05, 1, 0x11,
-	0xfd, 1, 200,
-	0x05, 1, 0x29,
-	0xfd, 1, 20,
-	0xff, 0,   //ending
+static unsigned char mipi_init_on_table_RX101[DSI_INIT_ON_MAX] = {
+	0x39, 4, 0xFF, 0x98, 0x81, 0x03,
+    0x15, 2, 0x01, 0x00,
+    0x15, 2, 0x02, 0x00,
+    0x15, 2, 0x03, 0x53,
+    0x15, 2, 0x04, 0x53,
+    0x15, 2, 0x05, 0x13,
+    0x15, 2, 0x06, 0x04,
+    0x15, 2, 0x07, 0x02,
+    0x15, 2, 0x08, 0x02,
+    0x15, 2, 0x09, 0x00,
+    0x15, 2, 0x0a, 0x00,
+    0x15, 2, 0x0b, 0x00,
+    0x15, 2, 0x0c, 0x00,
+    0x15, 2, 0x0d, 0x00,
+    0x15, 2, 0x0e, 0x00,
+    0x15, 2, 0x0f, 0x00,
+    0x15, 2, 0x10, 0x00,
+    0x15, 2, 0x11, 0x00,
+    0x15, 2, 0x12, 0x00,
+    0x15, 2, 0x13, 0x00,
+    0x15, 2, 0x14, 0x00,
+    0x15, 2, 0x15, 0x00,
+    0x15, 2, 0x16, 0x00,
+    0x15, 2, 0x17, 0x00,
+    0x15, 2, 0x18, 0x00,
+    0x15, 2, 0x19, 0x00,
+    0x15, 2, 0x1a, 0x00,
+    0x15, 2, 0x1b, 0x00,
+    0x15, 2, 0x1c, 0x00,
+    0x15, 2, 0x1d, 0x00,
+    0x15, 2, 0x1e, 0xC0,
+    0x15, 2, 0x1f, 0x80,
+    0x15, 2, 0x20, 0x02,
+    0x15, 2, 0x21, 0x09,
+    0x15, 2, 0x22, 0x00,
+    0x15, 2, 0x23, 0x00,
+    0x15, 2, 0x24, 0x00,
+    0x15, 2, 0x25, 0x00,
+    0x15, 2, 0x26, 0x00,
+    0x15, 2, 0x27, 0x00,
+    0x15, 2, 0x28, 0x55,
+    0x15, 2, 0x29, 0x03,
+    0x15, 2, 0x2a, 0x00,
+    0x15, 2, 0x2b, 0x00,
+    0x15, 2, 0x2c, 0x00,
+    0x15, 2, 0x2d, 0x00,
+    0x15, 2, 0x2e, 0x00,
+    0x15, 2, 0x2f, 0x00,
+    0x15, 2, 0x30, 0x00,
+    0x15, 2, 0x31, 0x00,
+    0x15, 2, 0x32, 0x00,
+    0x15, 2, 0x33, 0x00,
+    0x15, 2, 0x34, 0x00,
+    0x15, 2, 0x35, 0x00,
+    0x15, 2, 0x36, 0x00,
+    0x15, 2, 0x37, 0x00,
+    0x15, 2, 0x38, 0x3c,
+    0x15, 2, 0x39, 0x00,
+    0x15, 2, 0x3a, 0x00,
+    0x15, 2, 0x3b, 0x00,
+    0x15, 2, 0x3c, 0x00,
+    0x15, 2, 0x3d, 0x00,
+    0x15, 2, 0x3e, 0x00,
+    0x15, 2, 0x3f, 0x00,
+    0x15, 2, 0x40, 0x00,
+    0x15, 2, 0x41, 0x00,
+    0x15, 2, 0x42, 0x00,
+    0x15, 2, 0x43, 0x00,
+    0x15, 2, 0x44, 0x00,
+    0x15, 2, 0x50, 0x01,
+    0x15, 2, 0x51, 0x23,
+    0x15, 2, 0x52, 0x45,
+    0x15, 2, 0x53, 0x67,
+    0x15, 2, 0x54, 0x89,
+    0x15, 2, 0x55, 0xab,
+    0x15, 2, 0x56, 0x01,
+    0x15, 2, 0x57, 0x23,
+    0x15, 2, 0x58, 0x45,
+    0x15, 2, 0x59, 0x67,
+    0x15, 2, 0x5a, 0x89,
+    0x15, 2, 0x5b, 0xab,
+    0x15, 2, 0x5c, 0xcd,
+    0x15, 2, 0x5d, 0xef,
+    0x15, 2, 0x5e, 0x01,
+    0x15, 2, 0x5f, 0x0A,
+    0x15, 2, 0x60, 0x02,
+    0x15, 2, 0x61, 0x02,
+    0x15, 2, 0x62, 0x08,
+    0x15, 2, 0x63, 0x15,
+    0x15, 2, 0x64, 0x14,
+    0x15, 2, 0x65, 0x02,
+    0x15, 2, 0x66, 0x11,
+    0x15, 2, 0x67, 0x10,
+    0x15, 2, 0x68, 0x02,
+    0x15, 2, 0x69, 0x0F,
+    0x15, 2, 0x6a, 0x0E,
+    0x15, 2, 0x6b, 0x02,
+    0x15, 2, 0x6c, 0x0D,
+    0x15, 2, 0x6d, 0x0C,
+    0x15, 2, 0x6e, 0x06,
+    0x15, 2, 0x6f, 0x02,
+    0x15, 2, 0x70, 0x02,
+    0x15, 2, 0x71, 0x02,
+    0x15, 2, 0x72, 0x02,
+    0x15, 2, 0x73, 0x02,
+    0x15, 2, 0x74, 0x02,
+    0x15, 2, 0x75, 0x0A,
+    0x15, 2, 0x76, 0x02,
+    0x15, 2, 0x77, 0x02,
+    0x15, 2, 0x78, 0x06,
+    0x15, 2, 0x79, 0x15,
+    0x15, 2, 0x7a, 0x14,
+    0x15, 2, 0x7b, 0x02,
+    0x15, 2, 0x7c, 0x10,
+    0x15, 2, 0x7d, 0x11,
+    0x15, 2, 0x7e, 0x02,
+    0x15, 2, 0x7f, 0x0C,
+    0x15, 2, 0x80, 0x0D,
+    0x15, 2, 0x81, 0x02,
+    0x15, 2, 0x82, 0x0E,
+    0x15, 2, 0x83, 0x0F,
+    0x15, 2, 0x84, 0x08,
+    0x15, 2, 0x85, 0x02,
+    0x15, 2, 0x86, 0x02,
+    0x15, 2, 0x87, 0x02,
+    0x15, 2, 0x88, 0x02,
+    0x15, 2, 0x89, 0x02,
+    0x15, 2, 0x8a, 0x02,
+    0x39, 4, 0xFF, 0x98, 0x81, 0x04,
+    0x15, 2, 0x6C, 0x15,
+    0x15, 2, 0x6E, 0x30,
+    0x15, 2, 0x6F, 0x55,
+    0x15, 2, 0x3A, 0x24,
+    0x15, 2, 0x8D, 0x1F,
+    0x15, 2, 0x87, 0xBA,
+    0x15, 2, 0x26, 0x76,
+    0x15, 2, 0xB2, 0xD1,
+    0x15, 2, 0xB5, 0x07,
+    0x15, 2, 0x35, 0x1F,
+    0x15, 2, 0x31, 0x75,
+    0x15, 2, 0x3B, 0x98,
+    0x15, 2, 0x38, 0x01,
+    0x15, 2, 0x39, 0x00,
+    0x15, 2, 0x88, 0x0B,
+    0x39, 4, 0xFF, 0x98, 0x81, 0x01,
+    0x15, 2, 0x22, 0x0A,
+    0x15, 2, 0x31, 0x09,
+    0x15, 2, 0x35, 0x07,
+    0x15, 2, 0x53, 0x48,
+    0x15, 2, 0x40, 0x33,
+    0x15, 2, 0x55, 0x88,
+    0x15, 2, 0x50, 0x95,
+    0x15, 2, 0x51, 0x95,
+    0x15, 2, 0x60, 0x30,
+    0x15, 2, 0x34, 0x01,
+    0x15, 2, 0xA0, 0x0F,
+    0x15, 2, 0xA1, 0x17,
+    0x15, 2, 0xA2, 0x22,
+    0x15, 2, 0xA3, 0x19,
+    0x15, 2, 0xA4, 0x15,
+    0x15, 2, 0xA5, 0x28,
+    0x15, 2, 0xA6, 0x1C,
+    0x15, 2, 0xA7, 0x1C,
+    0x15, 2, 0xA8, 0x78,
+    0x15, 2, 0xA9, 0x1C,
+    0x15, 2, 0xAA, 0x28,
+    0x15, 2, 0xAB, 0x69,
+    0x15, 2, 0xAC, 0x1A,
+    0x15, 2, 0xAD, 0x19,
+    0x15, 2, 0xAE, 0x4B,
+    0x15, 2, 0xAF, 0x22,
+    0x15, 2, 0xB0, 0x2A,
+    0x15, 2, 0xB1, 0x4B,
+    0x15, 2, 0xB2, 0x6B,
+    0x15, 2, 0xB3, 0x3F,
+    0x15, 2, 0xC0, 0x01,
+    0x15, 2, 0xC1, 0x17,
+    0x15, 2, 0xC2, 0x22,
+    0x15, 2, 0xC3, 0x19,
+    0x15, 2, 0xC4, 0x15,
+    0x15, 2, 0xC5, 0x28,
+    0x15, 2, 0xC6, 0x1C,
+    0x15, 2, 0xC7, 0x1D,
+    0x15, 2, 0xC8, 0x78,
+    0x15, 2, 0xC9, 0x1C,
+    0x15, 2, 0xCA, 0x28,
+    0x15, 2, 0xCB, 0x69,
+    0x15, 2, 0xCC, 0x1A,
+    0x15, 2, 0xCD, 0x19,
+    0x15, 2, 0xCE, 0x4B,
+    0x15, 2, 0xCF, 0x22,
+    0x15, 2, 0xD0, 0x2A,
+    0x15, 2, 0xD1, 0x4B,
+    0x15, 2, 0xD2, 0x6B,
+    0x15, 2, 0xD3, 0x3F,
+    0x39, 4, 0xFF, 0x98, 0x81, 0x00,
+    0x15, 2, 0x35, 0x00,
+    0x05, 1, 0x11,
+    0xfd, 1, 120,	/*delay, 120ms*/
+    0x05, 1, 0x29,
+    0xfd, 1, 120,	/*delay, 120ms*/
+    0x39, 4, 0xFF, 0x98, 0x81, 0x00,
+    0xff, 0,	/*ending*/
 };
-static unsigned char mipi_init_off_table_TL070WSH27[DSI_INIT_OFF_MAX] = {//table size < 50
+static unsigned char mipi_init_off_table_RX101[DSI_INIT_OFF_MAX] = {
 	0x05, 1, 0x28,
 	0xfd, 1, 10,
 	0x05, 1, 0x10,
 	0xfd, 1, 10,
-	0xff, 0,   //ending
+	0xff, 0,   /*ending*/
 };
 
-static unsigned char mipi_init_on_table_TL070HDV03CT[DSI_INIT_ON_MAX] = {//table size < 100
-	0xff, 0,   //ending
-};
-static unsigned char mipi_init_off_table_TL070HDV03CT[DSI_INIT_OFF_MAX] = {//table size < 50
-	0xff, 0,   //ending
-};
+static unsigned char mipi_init_on_table_AML101[DSI_INIT_ON_MAX] = {
+    0x15, 2, 0xB0, 0x01,
+    0x15, 2, 0xC0, 0x26,
+    0x15, 2, 0xC1, 0x10,
+    0x15, 2, 0xC2, 0x0E,
+    0x15, 2, 0xC3, 0x00,
+    0x15, 2, 0xC4, 0x00,
+    0x15, 2, 0xC5, 0x23,
+    0x15, 2, 0xC6, 0x11,
+    0x15, 2, 0xC7, 0x22,
+    0x15, 2, 0xC8, 0x20,
+    0x15, 2, 0xC9, 0x1E,
+    0x15, 2, 0xCA, 0x1C,
+    0x15, 2, 0xCB, 0x0C,
+    0x15, 2, 0xCC, 0x0A,
+    0x15, 2, 0xCD, 0x08,
+    0x15, 2, 0xCE, 0x06,
+    0x15, 2, 0xCF, 0x18,
+    0x15, 2, 0xD0, 0x02,
+    0x15, 2, 0xD1, 0x00,
+    0x15, 2, 0xD2, 0x00,
+    0x15, 2, 0xD3, 0x00,
+    0x15, 2, 0xD4, 0x26,
+    0x15, 2, 0xD5, 0x0F,
+    0x15, 2, 0xD6, 0x0D,
+    0x15, 2, 0xD7, 0x00,
+    0x15, 2, 0xD8, 0x00,
+    0x15, 2, 0xD9, 0x23,
+    0x15, 2, 0xDA, 0x11,
+    0x15, 2, 0xDB, 0x21,
+    0x15, 2, 0xDC, 0x1F,
+    0x15, 2, 0xDD, 0x1D,
+    0x15, 2, 0xDE, 0x1B,
+    0x15, 2, 0xDF, 0x0B,
+    0x15, 2, 0xE0, 0x09,
+    0x15, 2, 0xE1, 0x07,
+    0x15, 2, 0xE2, 0x05,
+    0x15, 2, 0xE3, 0x17,
+    0x15, 2, 0xE4, 0x01,
+    0x15, 2, 0xE5, 0x00,
+    0x15, 2, 0xE6, 0x00,
+    0x15, 2, 0xE7, 0x00,
+    0x15, 2, 0xB0, 0x03,
+    0x15, 2, 0xBE, 0x04,
+    0x15, 2, 0xB9, 0x40,
+    0x15, 2, 0xCC, 0x88,
+    0x15, 2, 0xC8, 0x0C,
+    0x15, 2, 0xC9, 0x07,
+    0x15, 2, 0xCD, 0x01,
+    0x15, 2, 0xCA, 0x40,
+    0x15, 2, 0xCE, 0x1A,
+    0x15, 2, 0xCF, 0x60,
+    0x15, 2, 0xD2, 0x08,
+    0x15, 2, 0xD3, 0x08,
+    0x15, 2, 0xDB, 0x01,
+    0x15, 2, 0xD9, 0x06,
+    0x15, 2, 0xD4, 0x00,
+    0x15, 2, 0xD5, 0x01,
+    0x15, 2, 0xD6, 0x04,
+    0x15, 2, 0xD7, 0x03,
+    0x15, 2, 0xC2, 0x00,
+    0x15, 2, 0xC3, 0x0E,
+    0x15, 2, 0xC4, 0x00,
+    0x15, 2, 0xC5, 0x0E,
+    0x15, 2, 0xDD, 0x00,
+    0x15, 2, 0xDE, 0x0E,
+    0x15, 2, 0xE6, 0x00,
+    0x15, 2, 0xE7, 0x0E,
+    0x15, 2, 0xC2, 0x00,
+    0x15, 2, 0xC3, 0x0E,
+    0x15, 2, 0xC4, 0x00,
+    0x15, 2, 0xC5, 0x0E,
+    0x15, 2, 0xDD, 0x00,
+    0x15, 2, 0xDE, 0x0E,
+    0x15, 2, 0xE6, 0x00,
+    0x15, 2, 0xE7, 0x0E,
+    0x15, 2, 0xB0, 0x06,
+    0x15, 2, 0xC0, 0xA5,
+    0x15, 2, 0xD5, 0x1C,
+    0x15, 2, 0xC0, 0x00,
+    0x15, 2, 0xB0, 0x00,
+    0x15, 2, 0xBD, 0x30,
 
-static unsigned char mipi_init_on_table_P070ACB[DSI_INIT_ON_MAX] = {//table size < 100
+    0x15, 2, 0xF9, 0x5C,
+    0x15, 2, 0xC2, 0x14,
+    0x15, 2, 0xC4, 0x14,
+    0x15, 2, 0xBF, 0x15,
+    0x15, 2, 0xC0, 0x0C,
+
+    0x15, 2, 0xB0, 0x00,
+    0x15, 2, 0xB1, 0x79,
+    0x15, 2, 0xBA, 0x8F,
+
+    0x05, 1, 0x11,
+    0xfd, 1, 120, /*delay 120ms*/
+    0x05, 1, 0x29,
+    0xfd, 1, 120, /*delay 120ms*/
+    0xff, 0, /*ending*/
+};
+static unsigned char mipi_init_off_table_AML101[DSI_INIT_OFF_MAX] = {
+	0x05, 1, 0x28,
 	0xfd, 1, 10,
-	0xf0, 3, 0, 1, 30, /* reset high, delay 30ms */
-	0xf0, 3, 0, 0, 10, /* reset low, delay 10ms */
-	0xf0, 3, 0, 1, 30, /* reset high, delay 30ms */
-	0xfc, 2, 0x04, 3,  /* check_reg, check_cnt */
-	0xff, 0,   //ending
-};
-static unsigned char mipi_init_off_table_P070ACB[DSI_INIT_OFF_MAX] = {//table size < 50
-	0xff, 0,   //ending
+	0x05, 1, 0x10,
+	0xfd, 1, 10,
+	0xff, 0,   /*ending*/
 };
 
 static struct dsi_config_s lcd_mipi_config = {
@@ -315,80 +553,6 @@ struct lcd_config_s lcd_config_dft = {
 	.pinmux_clr = {{LCD_PINMUX_END, 0x0}},
 };
 
-#ifdef CONFIG_AML_LCD_EXTERN
-static char lcd_ext_gpio[LCD_EXTERN_GPIO_NUM_MAX][LCD_EXTERN_GPIO_LEN_MAX] = {
-	"invalid", /* ending flag */
-};
-
-static unsigned char ext_init_on_table[LCD_EXTERN_INIT_ON_MAX] = {
-	0xff, 0,   //ending flag
-};
-
-static unsigned char ext_init_off_table[LCD_EXTERN_INIT_OFF_MAX] = {
-	0xff, 0,   //ending flag
-};
-
-struct lcd_extern_common_s ext_common_dft = {
-	.lcd_ext_key_valid = 0,
-	.lcd_ext_num = 4,
-	.i2c_bus = LCD_EXTERN_I2C_BUS_0, /* LCD_EXTERN_I2C_BUS_0/1/2/3/4 */
-	.pinmux_set = {{LCD_PINMUX_END, 0x0}},
-	.pinmux_clr = {{LCD_PINMUX_END, 0x0}},
-};
-
-struct lcd_extern_config_s ext_config_dtf[LCD_EXTERN_NUM_MAX] = {
-	{
-		.index = 0,
-		.name = "ext_default",
-		.type = LCD_EXTERN_I2C, /* LCD_EXTERN_I2C, LCD_EXTERN_SPI, LCD_EXTERN_MIPI, LCD_EXTERN_MAX */
-		.status = 0, /* 0=disable, 1=enable */
-		.i2c_addr = 0x1c, /* 7bit i2c address */
-		.i2c_addr2 = 0xff, /* 7bit i2c address, 0xff for none */
-		.cmd_size = LCD_EXT_CMD_SIZE_DYNAMIC,
-		.table_init_on = ext_init_on_table,
-		.table_init_on_cnt = sizeof(ext_init_on_table),
-		.table_init_off = ext_init_off_table,
-		.table_init_off_cnt = sizeof(ext_init_off_table),
-	},
-	{ /* TL070WSH27 */
-		.index = 1,
-		.name = "mipi_default",
-		.type = LCD_EXTERN_MIPI, /* LCD_EXTERN_I2C, LCD_EXTERN_SPI, LCD_EXTERN_MIPI, LCD_EXTERN_MAX */
-		.status = 1, /* 0=disable, 1=enable */
-		.cmd_size = LCD_EXT_CMD_SIZE_DYNAMIC,
-		.table_init_on = ext_init_on_table_TL070WSH27,
-		.table_init_on_cnt = sizeof(ext_init_on_table_TL070WSH27),
-		.table_init_off = ext_init_off_table_TL070WSH27,
-		.table_init_off_cnt = sizeof(ext_init_off_table_TL070WSH27),
-	},
-	{ /* TL070HDV03CT */
-		.index = 2,
-		.name = "mipi_default",
-		.type = LCD_EXTERN_MIPI, /* LCD_EXTERN_I2C, LCD_EXTERN_SPI, LCD_EXTERN_MIPI, LCD_EXTERN_MAX */
-		.status = 1, /* 0=disable, 1=enable */
-		.cmd_size = LCD_EXT_CMD_SIZE_DYNAMIC,
-		.table_init_on = ext_init_on_table_TL070HDV03CT,
-		.table_init_on_cnt = sizeof(ext_init_on_table_TL070HDV03CT),
-		.table_init_off = ext_init_off_table_TL070HDV03CT,
-		.table_init_off_cnt = sizeof(ext_init_off_table_TL070HDV03CT),
-	},
-	{ /* P070ACB_FT */
-		.index = 3,
-		.name = "mipi_default",
-		.type = LCD_EXTERN_MIPI, /* LCD_EXTERN_I2C, LCD_EXTERN_SPI, LCD_EXTERN_MIPI, LCD_EXTERN_MAX */
-		.status = 1, /* 0=disable, 1=enable */
-		.cmd_size = LCD_EXT_CMD_SIZE_DYNAMIC,
-		.table_init_on = ext_init_on_table_P070ACB_FT,
-		.table_init_on_cnt = sizeof(ext_init_on_table_P070ACB_FT),
-		.table_init_off = ext_init_off_table_P070ACB_FT,
-		.table_init_off_cnt = sizeof(ext_init_off_table_P070ACB_FT),
-	},
-	{
-		.index = LCD_EXTERN_INDEX_INVALID,
-	},
-};
-#endif
-
 struct bl_config_s bl_config_dft = {
 	.name = "default",
 	.bl_key_valid = 0,
@@ -422,27 +586,6 @@ struct bl_config_s bl_config_dft = {
 	.pinmux_clr = {{11, 0x00f00000}, {LCD_PINMUX_END, 0x0}},
 };
 
-#ifdef CONFIG_AML_BL_EXTERN
-static unsigned char bl_ext_init_on[BL_EXTERN_INIT_ON_MAX];
-static unsigned char bl_ext_init_off[BL_EXTERN_INIT_OFF_MAX];
-struct bl_extern_config_s bl_extern_config_dtf = {
-	.index = BL_EXTERN_INDEX_INVALID,
-	.name = "none",
-	.type = BL_EXTERN_MAX,
-	.i2c_addr = 0xff,
-	.i2c_bus = BL_EXTERN_I2C_BUS_MAX,
-	.dim_min = 10,
-	.dim_max = 255,
-
-	.init_loaded = 0,
-	.cmd_size = 0xff,
-	.init_on = bl_ext_init_on,
-	.init_off = bl_ext_init_off,
-	.init_on_cnt = sizeof(bl_ext_init_on),
-	.init_off_cnt = sizeof(bl_ext_init_off),
-};
-#endif
-
 void lcd_config_bsp_init(void)
 {
 	int i, j;
@@ -455,22 +598,15 @@ void lcd_config_bsp_init(void)
 			ext_lcd = &ext_lcd_config[i];
 			if (strcmp(ext_lcd->panel_type, str) == 0) {
 				switch (i) {
-				case 1: /* TL070WSH27 */
-					lcd_mipi_config.dsi_init_on = mipi_init_on_table_TL070WSH27;
-					lcd_mipi_config.dsi_init_off = mipi_init_off_table_TL070WSH27;
+				case 0: /* RX101 */
+					lcd_mipi_config.dsi_init_on = mipi_init_on_table_RX101;
+					lcd_mipi_config.dsi_init_off = mipi_init_off_table_RX101;
 					break;
-				case 2: /* TL070HDV03CT */
-					lcd_mipi_config.dsi_init_on = mipi_init_on_table_TL070HDV03CT;
-					lcd_mipi_config.dsi_init_off = mipi_init_off_table_TL070HDV03CT;
+				case 1: /* AML101 */
+					lcd_mipi_config.dsi_init_on = mipi_init_on_table_AML101;
+					lcd_mipi_config.dsi_init_off = mipi_init_off_table_AML101;
 					break;
-				case 3:/* P070ACB_FT*/
-					lcd_mipi_config.dsi_init_on = mipi_init_on_table_P070ACB;
-					lcd_mipi_config.dsi_init_off = mipi_init_off_table_P070ACB;
-					break;
-				case 0:
 				default:
-					lcd_mipi_config.dsi_init_on = mipi_init_on_table;
-					lcd_mipi_config.dsi_init_off = mipi_init_off_table;
 					break;
 				}
 				break;
@@ -492,21 +628,4 @@ void lcd_config_bsp_init(void)
 	}
 	for (j = i; j < BL_GPIO_NUM_MAX; j++)
 		strcpy(bl_config_dft.gpio_name[j], "invalid");
-
-#ifdef CONFIG_AML_LCD_EXTERN
-	for (i = 0; i < LCD_EXTERN_NUM_MAX; i++) {
-		if (ext_config_dtf[i].index == LCD_EXTERN_INDEX_INVALID)
-			break;
-	}
-	ext_common_dft.lcd_ext_num = i;
-
-	for (i = 0; i < LCD_EXTERN_GPIO_NUM_MAX; i++) {
-		if (strcmp(lcd_ext_gpio[i], "invalid") == 0)
-			break;
-		strcpy(ext_common_dft.gpio_name[i], lcd_ext_gpio[i]);
-	}
-	for (j = i; j < LCD_EXTERN_GPIO_NUM_MAX; j++)
-		strcpy(ext_common_dft.gpio_name[j], "invalid");
-
-#endif
 }

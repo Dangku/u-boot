@@ -628,11 +628,12 @@ U_BOOT_DEVICES(meson_pwm) = {
 };
 #endif /*end CONFIG_PWM_MESON*/
 
+#if 0
 #if defined(CONFIG_AML_LCD)
 // detect whether the LCD is exist
 void board_lcd_detect(void)
 {
-	u8 value = 0;
+	u8 value = 1;
 
 	// detect RESET pin
 	// if the LCD is connected, the RESET pin will be plll high
@@ -642,6 +643,7 @@ void board_lcd_detect(void)
 	setenv_ulong("lcd_exist", value);
 }
 #endif /* CONFIG_AML_LCD */
+#endif
 
 void board_set_dtb(void)
 {
@@ -699,7 +701,7 @@ int board_late_init(void)
 	run_command("cvbs init", 0);
 #endif
 #ifdef CONFIG_AML_LCD
-	board_lcd_detect();
+	//board_lcd_detect();
 	lcd_probe();
 #endif
 

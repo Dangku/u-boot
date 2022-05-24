@@ -68,6 +68,7 @@
         "mmc_list=0 1\0"\
         "loadaddr=1080000\0"\
         "panel_type=lcd_0\0" \
+		"lcd_exist=1\0" \
         "outputmode=panel\0" \
         "hdmimode=1080p60hz\0" \
 	    "colorattribute=444,8bit\0"\
@@ -127,8 +128,8 @@
             "hdmitx edid;"\
             "hdmitx hpd;"\
             "if test ${lcd_exist} = 1 && test ${outputmode} = panel; then "\
-                "setenv fb_width 1088;"\
-                "setenv fb_height 1920;"\
+                "setenv fb_width 800;"\
+                "setenv fb_height 1280;"\
             "fi;"\
             "osd open;"\
             "osd clear;"\
@@ -141,8 +142,20 @@
             "vout output ${outputmode};"\
             "vpp hdrpkt;"\
             "\0"\
+        "lcd_detect="\
+            "gpio set GPIOA_9; sleep 1;"\
+            "if gpio input GPIOA_5; then "\
+                "echo detect lcd not exist;"\
+                "setenv lcd_exist 0;"\
+                "gpio clear GPIOA_9;"\
+            "else "\
+                "echo detect lcd exist;"\
+                "setenv lcd_exist 1;"\
+            "fi;"\
+            "\0"\
 
 #define CONFIG_PREBOOT  \
+            "run lcd_detect;"\
             "run init_display;"\
             "run storeargs;"
 
@@ -262,7 +275,7 @@
 
 #define CONFIG_AML_LCD    1
 #define CONFIG_AML_LCD_TABLET 1
-#define CONFIG_AML_LCD_EXTERN 1
+//#define CONFIG_AML_LCD_EXTERN 1
 
 
 /* USB
