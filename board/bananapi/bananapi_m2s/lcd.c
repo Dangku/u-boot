@@ -124,7 +124,7 @@ static unsigned char mipi_init_off_table[DSI_INIT_OFF_MAX] = {
 	0xff, 0,   //ending
 };
 
-static unsigned char mipi_init_on_table_RX101[DSI_INIT_ON_MAX] = {
+static unsigned char mipi_init_on_table_RXT101[DSI_INIT_ON_MAX] = {
 	0x39, 4, 0xFF, 0x98, 0x81, 0x03,
     0x15, 2, 0x01, 0x00,
     0x15, 2, 0x02, 0x00,
@@ -329,7 +329,7 @@ static unsigned char mipi_init_on_table_RX101[DSI_INIT_ON_MAX] = {
     0x39, 4, 0xFF, 0x98, 0x81, 0x00,
     0xff, 0,	/*ending*/
 };
-static unsigned char mipi_init_off_table_RX101[DSI_INIT_OFF_MAX] = {
+static unsigned char mipi_init_off_table_RXT101[DSI_INIT_OFF_MAX] = {
 	0x05, 1, 0x28,
 	0xfd, 1, 10,
 	0x05, 1, 0x10,
@@ -598,9 +598,9 @@ void lcd_config_bsp_init(void)
 			ext_lcd = &ext_lcd_config[i];
 			if (strcmp(ext_lcd->panel_type, str) == 0) {
 				switch (i) {
-				case 0: /* RX101 */
-					lcd_mipi_config.dsi_init_on = mipi_init_on_table_RX101;
-					lcd_mipi_config.dsi_init_off = mipi_init_off_table_RX101;
+				case 0: /* RXT101 */
+					lcd_mipi_config.dsi_init_on = mipi_init_on_table_RXT101;
+					lcd_mipi_config.dsi_init_off = mipi_init_off_table_RXT101;
 					break;
 				case 1: /* AML101 */
 					lcd_mipi_config.dsi_init_on = mipi_init_on_table_AML101;
