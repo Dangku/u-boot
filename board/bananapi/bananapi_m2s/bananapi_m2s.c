@@ -669,6 +669,31 @@ void board_set_dtb(void)
 	}
 }
 
+int board_get_panel_type(void)
+{
+	char cmd[64];
+	char *addr_r;
+	unsigned long filesize;
+	int mmc_dev = board_current_mmc();
+
+	addr_r = getenv("loadaddr");
+	setenv("filesize", "0");
+
+	sprintf(cmd, "fatload mmc %d:1 %s lcd_env.txt", mmc_dev, addr_r);
+	run_command(cmd, 0);
+
+	filesize = getenv_ulong("filesize", 16, 0);
+	if (filesize > SZ_64K) {
+		printf("lcd_env.txt exceeds %d, size=%ld\n", SZ_64K, filesize);
+		return 0;
+	} else {
+		sprintf(cmd, "env import -t %s %lu", addr_r, filesize);
+		run_command(cmd, 0);
+	}
+
+	return 0;
+}
+
 int board_init(void)
 {
 #ifdef CONFIG_USB_XHCI_AMLOGIC_V2
@@ -702,6 +727,7 @@ int board_late_init(void)
 #endif
 #ifdef CONFIG_AML_LCD
 	//board_lcd_detect();
+	board_get_panel_type();
 	lcd_probe();
 #endif
 
