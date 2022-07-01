@@ -131,6 +131,10 @@
                 "setenv fb_width 800;"\
                 "setenv fb_height 1280;"\
             "fi;"\
+            "if test ${lcd_exist} = 0 && test ${outputmode} = custombuilt; then "\
+                "setenv fb_width ${customwidth};"\
+                "setenv fb_height ${customheight};"\
+            "fi;"\
             "osd open;"\
             "osd clear;"\
             "for n in ${mmc_list}; do "\

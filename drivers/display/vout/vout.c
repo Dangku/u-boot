@@ -420,6 +420,12 @@ static const vout_set_t vout_sets[] = {
 		.viu_color_fmt     = VPP_CM_YUV,
 		.viu_mux           = VIU_MUX_ENCP,
 	},
+	{ /* VMODE_custombuilt */
+		.name              = "custombuilt",
+		.mode              = VMODE_CUSTOMBUILT,
+		.width             = 0,
+		.height            = 0,
+	},
 };
 
 static struct vinfo_s vout_info = {
