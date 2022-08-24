@@ -60,7 +60,7 @@ static int do_hpd_detect(cmd_tbl_t *cmdtp, int flag, int argc,
 	if (st) {
 		setenv("outputmode", getenv("hdmimode"));
 	} else {
-#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L) || defined(CONFIG_BANANAPI_M2S)
+#if defined(CONFIG_KHADAS_VIM3) || defined(CONFIG_KHADAS_VIM3L) || defined(CONFIG_BANANAPI_M2S) || defined(CONFIG_BANANAPI_CM4)
 		setenv("outputmode", "panel");
 #elif defined(CONFIG_KHADAS_VIM) || defined(CONFIG_KHADAS_VIM2)
 		setenv("outputmode", getenv("hdmimode"));

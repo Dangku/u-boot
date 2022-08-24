@@ -6,6 +6,14 @@ config BANANAPI_M2S
 	bool "Support Bananapi M2S board"
 	default n
 
+config BANANAPI_CM4
+	bool "Support Bananapi CM4 board"
+	default n
+
 if BANANAPI_M2S
 source "board/bananapi/bananapi_m2s/Kconfig"
+endif
+
+if BANANAPI_CM4
+source "board/bananapi/bananapi_cm4/Kconfig"
 endif

@@ -27,9 +27,11 @@ extern int get_adc_value(int channel);
 #define BOARD_TYPE_CHANNEL	0
 #define BOARD_REV_CHANNEL		1
 int board_revision(void);
+void get_board_serial(void);
 
 #if defined(CONFIG_BANANAPI_M2S)
 int board_is_bananapi_m2s(void);
-void get_board_serial(void);
+#elif defined(CONFIG_BANANAPI_CM4)
+int board_is_bananapi_cm4(void);
 #endif
 #endif

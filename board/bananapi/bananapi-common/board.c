@@ -61,6 +61,9 @@ static unsigned int get_hw_revision(void)
 #if defined(CONFIG_BANANAPI_M2S)
 	if (IS_RANGE(adc, 900, 1100))
 		hwrev = BOARD_REVISION(2022, 04, 20);
+#elif defined(CONFIG_BANANAPI_CM4)
+	if (IS_RANGE(adc, 0, 50))
+                hwrev = BOARD_REVISION(2022, 08, 20);
 #endif
 
 	printf("ADC=%d, hwrev=0x%x\n", adc, hwrev);
@@ -139,5 +142,10 @@ int board_revision(void)
 int board_is_bananapi_m2s(void)
 {
 	return (board_revision() == 0x20220420);
+}
+#elif defined(CONFIG_BANANAPI_CM4)
+int board_is_bananapi_cm4(void)
+{
+	return (board_revision() == 0x20220820);
 }
 #endif
