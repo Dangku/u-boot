@@ -70,6 +70,7 @@ obj-y += time.o
 obj-$(CONFIG_TRACE) += trace.o
 obj-$(CONFIG_CMD_GPT) += uuid.o
 obj-y += vsprintf.o
+obj-y += sscanf.o
 #obj-$(CONFIG_LIB_RAND) += rand.o
 
 obj-$(CONFIG_CMD_BOOTCTOL_AVB) += libavb/

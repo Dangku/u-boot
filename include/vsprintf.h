@@ -173,4 +173,12 @@ int vscnprintf(char *buf, size_t size, const char *fmt, va_list args);
  */
 void print_grouped_ull(unsigned long long int_val, int digits);
 
+/**
+ * sscanf - Unformat a buffer into a list of arguments
+ * @buf:	input buffer
+ * @fmt:	formatting of buffer
+ * @...:	resulting arguments
+ */
+int sscanf(const char * buf, const char * fmt, ...);
+
 #endif
