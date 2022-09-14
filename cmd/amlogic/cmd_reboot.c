@@ -12,6 +12,7 @@
 #include <partition_table.h>
 #include <amlogic/storage.h>
 #include <asm/arch/stick_mem.h>
+#include <amlogic/pm.h>
 /*
 run get_rebootmode  //set reboot_mode env with current mode
 */
@@ -261,7 +262,7 @@ U_BOOT_CMD(
 
 int do_systemoff(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	aml_system_off();
+	pm_poweroff();
 	return 0;
 }
 
@@ -271,3 +272,13 @@ U_BOOT_CMD(
 	"system off ",
 	"systemoff "
 );
+
+int do_systemsuspend(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	pm_suspend();
+	return 0;
+}
+
+U_BOOT_CMD(systemsuspend, 2, 1,	do_systemsuspend,
+	"system suspend ", "systemsuspend ");
+
