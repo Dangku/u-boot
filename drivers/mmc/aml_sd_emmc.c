@@ -1082,7 +1082,8 @@ void sd_emmc_register(struct aml_card_sd_info * aml_priv)
 #ifdef MMC_HS200_MODE
 	cfg->f_max = 198000000;
 #else
-	cfg->f_max = 40000000;
+	/* cfg->f_max = 40000000; bpi, reduce max freq for cm4 initial fail */
+	cfg->f_max = 25000000;
 #endif
 	/**
 	 * For blank emmc, part-type should be unknown.
