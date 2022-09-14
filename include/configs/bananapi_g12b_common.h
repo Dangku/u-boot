@@ -146,20 +146,8 @@
             "vout output ${outputmode};"\
             "vpp hdrpkt;"\
             "\0"\
-        "lcd_detect="\
-            "gpio set GPIOA_9; sleep 1;"\
-            "if gpio input GPIOA_5; then "\
-                "echo detect lcd not exist;"\
-                "setenv lcd_exist 0;"\
-                "gpio clear GPIOA_9;"\
-            "else "\
-                "echo detect lcd exist;"\
-                "setenv lcd_exist 1;"\
-            "fi;"\
-            "\0"\
 
 #define CONFIG_PREBOOT  \
-            "run lcd_detect;"\
             "run init_display;"\
             "run storeargs;"
 
