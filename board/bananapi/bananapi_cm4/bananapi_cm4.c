@@ -415,9 +415,9 @@ struct aml_i2c_platform g_aml_i2c_plat = {
 #ifdef CONFIG_SYS_I2C_AML_I2C1
 static void board_i2c_set_pinmux(void)
 {
-	/* i2c_2 GPIO_X10/X11  */
-	clrbits_le32(PERIPHS_PIN_MUX_4, 0xf << 8 | 0xf << 12);
-	setbits_le32(PERIPHS_PIN_MUX_4, MESON_I2C_MASTER_B_GPIOX_10_BIT | MESON_I2C_MASTER_B_GPIOX_11_BIT);
+	/* i2c_1 GPIO_H6/H7  */
+	clrbits_le32(PERIPHS_PIN_MUX_B, 0xf << 24 | 0xf << 28);
+	setbits_le32(PERIPHS_PIN_MUX_B, MESON_I2C_MASTER_B_GPIOH_6_BIT | MESON_I2C_MASTER_B_GPIOH_7_BIT);
 }
 
 struct aml_i2c_platform g_aml_i2c_plat = {
@@ -429,10 +429,10 @@ struct aml_i2c_platform g_aml_i2c_plat = {
 	.use_pio            = 0,
 	.master_i2c_speed   = AML_I2C_SPPED_400K,
 	.master_b_pinmux = {
-		.scl_reg    = (unsigned long)MESON_I2C_MASTER_B_GPIOX_11_REG,
-		.scl_bit    = MESON_I2C_MASTER_B_GPIOX_11_BIT,
-		.sda_reg    = (unsigned long)MESON_I2C_MASTER_B_GPIOX_10_REG,
-		.sda_bit    = MESON_I2C_MASTER_B_GPIOX_10_BIT,
+		.scl_reg    = (unsigned long)MESON_I2C_MASTER_B_GPIOH_7_REG,
+		.scl_bit    = MESON_I2C_MASTER_B_GPIOH_7_BIT,
+		.sda_reg    = (unsigned long)MESON_I2C_MASTER_B_GPIOH_6_REG,
+		.sda_bit    = MESON_I2C_MASTER_B_GPIOH_6_BIT,
 	}
 };
 #endif
