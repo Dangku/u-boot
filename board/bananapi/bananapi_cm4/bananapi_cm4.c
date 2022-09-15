@@ -61,6 +61,7 @@
 #endif
 #include <asm/arch/timer.h>
 #include <bananapi-common.h>
+#include <rpi_mcu.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -705,6 +706,8 @@ int board_init(void)
 	board_i2c_init();
 #endif
 
+	rpi_mcu_init();
+
 	return 0;
 }
 
@@ -723,7 +726,6 @@ int board_late_init(void)
 	run_command("cvbs init", 0);
 #endif
 #ifdef CONFIG_AML_LCD
-	//board_lcd_detect();
 	board_get_panel_type();
 	lcd_probe();
 #endif
