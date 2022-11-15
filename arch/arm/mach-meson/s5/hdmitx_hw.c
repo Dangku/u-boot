@@ -1,293 +1,482 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2019 Amlogic, Inc. All rights reserved.
+ */
+
 #include <common.h>
 #include <asm/io.h>
-#include <amlogic/media/vout/hdmitx/hdmitx_module.h>
-#include <amlogic/media/vout/hdmitx/hdmitx_reg.h>
-#include <amlogic/media/vout/hdmitx/mach_reg.h>
+#include <linux/delay.h>
+#include <amlogic/media/vout/hdmitx21/hdmitx_module.h>
+#include <amlogic/media/vout/hdmitx21/hdmitx_reg.h>
+#include <amlogic/media/vout/hdmitx21/mach_reg.h>
 #include <asm/arch/bl31_apis.h>
+#include <linux/arm-smccc.h>
 #include "hdmitx_misc.h"
 
-static struct reg_map reg_maps[] = {
-	[CBUS_REG_IDX] = { /* CBUS */
-		.base_addr = 0xfe001000,
+static int hdmi_dbg;
+
+static const struct reg_map reg21_maps[] = {
+	[VPUCTRL_REG_IDX] = {
+		.phy_addr = 0xff800000,
 	},
-	[PERIPHS_REG_IDX] = { /* PERIPHS */
-		.base_addr = 0xfe004000,
+	[HDMITX_COR_REG_IDX] = {
+		.phy_addr = 0xfe3a0000,
 	},
-	[VCBUS_REG_IDX] = { /* VPU */
-		.base_addr = 0xff000000,
-	},
-	[HHI_REG_IDX] = { /* HIU */
-		.base_addr = 0xfe000000,
+	[HDMITX_TOP_REG_IDX] = {
+		.phy_addr = 0xfe390000,
 	},
 	[SYSCTRL_REG_IDX] = {
-		.base_addr = 0xfe010000,
-	},
-	[RESETCTRL_REG_IDX] = {
-		.base_addr = 0xfe002000,
-	},
-	[ANACTRL_REG_IDX] = {
-		.base_addr = 0xfe008000,
+		.phy_addr = 0xfe010000,
 	},
 	[PWRCTRL_REG_IDX] = {
-		.base_addr = 0xfe00c000,
+		.phy_addr = 0xfe00c000,
 	},
-	[HDMITX_SEC_REG_IDX] = { /* HDMITX DWC LEVEL*/
-		.base_addr = 0xfe300000,
+	[ANACTRL_REG_IDX] = {
+		.phy_addr = 0xfe008000,
 	},
-	[HDMITX_REG_IDX] = { /* HDMITX TOP LEVEL*/
-		.base_addr = 0xfe308000,
+	[RESETCTRL_REG_IDX] = {
+		.phy_addr = 0xfe002000,
 	},
-	[REG_IDX_END] = {
+	[CLKCTRL_REG_IDX] = {
+		.phy_addr = 0xfe000000,
+	},
+	[PADCTRL_REG_IDX] = {
+		.phy_addr = 0xfe004000,
 	},
 };
-
-#define HDMITX_DWC_BASE_OFFSET (reg_maps[HDMITX_SEC_REG_IDX].base_addr)
-#define HDMITX_TOP_BASE_OFFSET (reg_maps[HDMITX_REG_IDX].base_addr)
 
 int hdmitx_get_hpd_state(void)
 {
 	int st = 0;
 
-	st = !!(hd_read_reg(P_PADCTRL_GPIOH_I) & (1 << 2));
+	st = !!(hd21_read_reg(PADCTRL_GPIOH_I) & (1 << 2));
 	return st;
 }
 
-void hdmitx_ddc_init(void)
+void hdmitx21_mux_ddc(void)
 {
-	/*Mux DDC SDA/SCL*/
-	hd_set_reg_bits(P_PADCTRL_PIN_MUX_REGB, 1, 0, 4);
-	hd_set_reg_bits(P_PADCTRL_PIN_MUX_REGB, 1, 4, 4);
+	hd21_set_reg_bits(PADCTRL_PIN_MUX_REG8, 1, 0, 4); // hdmitx_sda
+	hd21_set_reg_bits(PADCTRL_PIN_MUX_REG8, 1, 4, 4); // hdmitx_scl
 }
 
-static uint32_t get_base_addr(uint32_t idx)
+static void sec_wr(u32 addr, u32 data)
+{
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(0x82000019, (unsigned long)addr, data, 32, 0, 0, 0, 0, &res);
+	if (hdmi_dbg)
+		pr_info("sec_wr32[0x%08x] 0x%08x\n", addr, data);
+}
+
+static void sec_wr8(u32 addr, u8 data)
+{
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(0x82000019, (unsigned long)addr, data & 0xff, 8, 0, 0, 0, 0, &res);
+	if (hdmi_dbg)
+		pr_info("[0x%08x] 0x%02x\n", addr, data);
+}
+
+static u32 sec_rd(u32 addr)
+{
+	u32 data;
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(0x82000018, (unsigned long)addr, 32, 0, 0, 0, 0, 0, &res);
+	data = (unsigned int)((res.a0) & 0xffffffff);
+
+	if (hdmi_dbg)
+		pr_info("[0x%08x] 0x%08x\n", addr, data);
+	return data;
+}
+
+static u8 sec_rd8(u32 addr)
+{
+	u32 data;
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(0x82000018, (unsigned long)addr, 8, 0, 0, 0, 0, 0, &res);
+	data = (unsigned int)((res.a0) & 0xffffffff);
+
+	if (hdmi_dbg)
+		pr_info("[0x%08x] 0x%02x\n", addr, data);
+	return data;
+}
+
+u32 TO21_PHY_ADDR(u32 addr)
+{
+	u32 index;
+	u32 offset;
+
+	index = addr >> BASE_REG_OFFSET;
+	offset = addr & (((1 << BASE_REG_OFFSET) - 1));
+
+	return (reg21_maps[index].phy_addr + offset);
+}
+
+static u32 get_enc_paddr(unsigned int addr)
+{
+	struct hdmitx_dev *hdev = get_hdmitx21_device();
+	unsigned int idx = addr >> BASE_REG_OFFSET;
+	unsigned int offset = (addr & 0xffff) >> 2;
+
+	if (hdev->enc_idx == 2 && idx == VPUCTRL_REG_IDX) {
+		if (offset >= 0x1b00 && offset < 0x1d00)
+			return addr + (0x800 << 2);
+	}
+	return addr;
+}
+
+u32 hd21_read_reg(u32 vaddr)
+{
+	u32 val;
+	u32 paddr = TO21_PHY_ADDR(get_enc_paddr(vaddr));
+
+	val = readl(paddr);
+	if (hdmi_dbg)
+		pr_info("Rd32[0x%08x] 0x%08x\n", paddr, val);
+	return val;
+}
+
+void hd21_write_reg(u32 vaddr, u32 val)
+{
+	u32 rval;
+	u32 paddr = TO21_PHY_ADDR(get_enc_paddr(vaddr));
+
+	writel(val, paddr);
+	rval = readl(paddr);
+	if (!hdmi_dbg)
+		return;
+	if (val != rval)
+		pr_info("Wr32[0x%08x] 0x%08x != Rd32 0x%08x\n", paddr, val, rval);
+	else
+		pr_info("Wr32[0x%08x] 0x%08x\n", paddr, val);
+}
+
+void hd21_set_reg_bits(u32 addr, u32 value,
+		     u32 offset, u32 len)
+{
+	u32 data32 = 0;
+
+	data32 = hd21_read_reg(addr);
+	data32 &= ~(((1 << len) - 1) << offset);
+	data32 |= (value & ((1 << len) - 1)) << offset;
+	hd21_write_reg(addr, data32);
+}
+
+static u32 hdmitx_rd_top(u32 addr)
+{
+	u32 base_offset;
+	u32 data;
+
+	base_offset = reg21_maps[HDMITX_TOP_REG_IDX].phy_addr;
+
+	data = sec_rd(base_offset + addr);
+	return data;
+} /* hdmitx_rd_top */
+
+static u8 hdmitx_rd_cor(u32 addr)
+{
+	u32 base_offset;
+	u8 data;
+
+	base_offset = reg21_maps[HDMITX_COR_REG_IDX].phy_addr;
+	data = sec_rd8(base_offset + addr);
+	return data;
+} /* hdmitx_rd_cor */
+
+static void hdmitx_wr_top(u32 addr, u32 data)
+{
+	u32 base_offset;
+
+	base_offset = reg21_maps[HDMITX_TOP_REG_IDX].phy_addr;
+	sec_wr(base_offset + addr, data);
+} /* hdmitx_wr_top */
+
+static void hdmitx_wr_cor(u32 addr, u8 data)
+{
+	u32 base_offset;
+
+	base_offset = reg21_maps[HDMITX_COR_REG_IDX].phy_addr;
+	sec_wr8(base_offset + addr, data);
+} /* hdmitx_wr_cor */
+
+u32 hdmitx21_rd_reg(u32 addr)
+{
+	u32 offset = (addr & TOP_OFFSET_MASK) >> 24;
+	u32 data;
+
+	addr = addr & 0xffff;
+	if (offset)
+		data = hdmitx_rd_top(addr);
+	else
+		data = hdmitx_rd_cor(addr);
+
+	return data;
+}
+
+void hdmitx21_wr_reg(u32 addr, u32 val)
+{
+	u32 offset = (addr & TOP_OFFSET_MASK) >> 24;
+
+	addr = addr & 0xffff;
+	if (offset)
+		hdmitx_wr_top(addr, val);
+	else
+		hdmitx_wr_cor(addr, val);
+}
+
+bool hdmitx21_get_bit(u32 addr, u32 bit_nr)
+{
+	return (hdmitx21_rd_reg(addr) & (1 << bit_nr)) == (1 << bit_nr);
+}
+
+void hdmitx21_set_reg_bits(u32 addr, u32 value,
+			 u32 offset, u32 len)
+{
+	u32 data32 = 0;
+
+	data32 = hdmitx21_rd_reg(addr);
+	data32 &= ~(((1 << len) - 1) << offset);
+	data32 |= (value & ((1 << len) - 1)) << offset;
+	hdmitx21_wr_reg(addr, data32);
+}
+
+void hdmitx21_set_bit(u32 addr, u32 bit_val, bool st)
+{
+	u32 data32 = 0;
+
+	data32 = hdmitx21_rd_reg(addr);
+	data32 = st ? (data32 | bit_val) : (data32 & ~bit_val);
+	hdmitx21_wr_reg(addr, data32);
+}
+
+void hdmitx21_poll_reg(unsigned int addr, unsigned int exp_data, unsigned int mask,
+	unsigned int max_try)
+{
+	unsigned int rd_data;
+	unsigned int cnt = 0;
+	unsigned int done = 0;
+
+	rd_data = hdmitx21_rd_reg(addr);
+	while (((cnt < max_try) || (max_try == 0)) && (done != 1)) {
+		if ((rd_data | mask) == (exp_data | mask)) {
+			done = 1;
+		} else {
+			cnt++;
+			rd_data = hdmitx21_rd_reg(addr);
+		}
+	}
+	if (done == 0)
+		pr_info("%s 0x%x access time-out!\n", __func__, addr);
+} /* hdmitx21_poll_reg */
+
+u32 hdmitx21_rd_check_reg(u32 addr, u32 exp_data,
+				 u32 mask)
+{
+	unsigned long rd_data;
+
+	rd_data = hdmitx21_rd_reg(addr);
+	if ((rd_data | mask) != (exp_data | mask)) {
+		pr_info("HDMITX-DWC addr=0x%04x rd_data=0x%02x\n",
+			(unsigned int)addr, (unsigned int)rd_data);
+		pr_info("HDMITX-DWC exp_data=0x%02x mask=0x%02x\n",
+			(unsigned int)exp_data, (unsigned int)mask);
+		return 1;
+	}
+	return 0;
+}
+
+static u32 get_base_addr(u32 idx)
 {
 	if (idx >= REG_IDX_END)
 		return 0;
-	if (!reg_maps[idx].base_addr)
+	if (!reg21_maps[idx].phy_addr)
 		printf("%s[%d] idx = %d\n", __func__, __LINE__, idx);
 
-	return reg_maps[idx].base_addr;
+	return reg21_maps[idx].phy_addr;
 }
 
-uint32_t hd_get_paddr(uint32_t addr)
+u32 hd_get_paddr(u32 addr)
 {
-	uint32_t idx = (addr) >> BASE_REG_OFFSET;
-	uint32_t offset_addr = ((1 << BASE_REG_OFFSET) - 1) & (addr);
-	uint32_t paddr;
+	u32 idx = (addr) >> BASE_REG_OFFSET;
+	u32 offset_addr = ((1 << BASE_REG_OFFSET) - 1) & (addr);
+	u32 paddr;
 
 	paddr = get_base_addr(idx) + offset_addr;
 	return paddr;
 }
 
-uint32_t hd_read_reg(uint32_t addr)
+/* only for S5 */
+void hdmitx_phy_pre_init(struct hdmitx_dev *hdev)
 {
-	uint32_t val;
-	uint32_t idx = (addr) >> BASE_REG_OFFSET;
-	uint32_t offset_addr = ((1 << BASE_REG_OFFSET) - 1) & (addr);
-	void *paddr;
+	enum frl_rate_enum frl_rate = hdev->frl_rate;
 
-	paddr = (void *)((unsigned long)(get_base_addr(idx) + offset_addr));
-	val = readl(paddr);
+	/* Stage1: reset registers */
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL0, 0x0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL1, 0x0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL3, 0x0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL5, 0x0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL6, 0x0);
+	ndelay(10);
 
-	return val;
+	/* Stage2: enable Bandgap */
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL5, 0x03, 0, 8);
+	udelay(10);
+
+	/* Stage3: enable LDO */
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL3, 0xbd, 24, 8);
+	udelay(10);
+
+	/* Stage4: enable dcc */
+	if (frl_rate == FRL_3G3L || frl_rate == FRL_6G3L)
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL6, 0x57, 8, 8); /* power down channel 4 */
+	else
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL6, 0x77, 8, 8);
+	ndelay(10);
+
+	/* Stage5: enable p2s */
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL6, 0x0b, 0, 8);
+	if (frl_rate == FRL_3G3L || frl_rate == FRL_6G3L)
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL5, 0x3f, 8, 8); /* power down channel 4 */
+	else
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL5, 0xff, 8, 8);
+	ndelay(10);
+
+	/* set phy ch0/1/2/3 swap as default */
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 0, 18, 2);
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 1, 20, 2);
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 2, 22, 2);
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 3, 24, 2);
+	// wire    wr_enable = control[3];
+	// wire    fifo_enable = control[2];
+	// assign  phy_clk_en = control[1];
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 0, 0, 1); // Enable Soft_reset
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 1, 0, 1); // Enable Soft_reset
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 0, 0, 1); // Enable Soft_reset
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 1, 1, 1); // Enable tmds_clk
+	// Enable enable the write/read decoupling state machine
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 1, 3, 1);
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL1, 1, 2, 1); // Enable the decoupling FIFO
 }
 
-void hd_write_reg(unsigned int addr, unsigned int val)
+static void hdmitx_set_s5_phypara(enum frl_rate_enum frl_rate, u32 tmds_clk)
 {
-	uint32_t idx = (addr) >> BASE_REG_OFFSET;
-	uint32_t offset_addr = ((1 << BASE_REG_OFFSET) - 1) & (addr);
-	void *paddr;
+	const u16 swing[] = {
+		[FRL_NONE] = 0x0000,
+		[FRL_3G3L] = 0x00d5,
+		[FRL_6G3L] = 0x00cf,
+		[FRL_6G4L] = 0xcfcf,
+		[FRL_8G4L] = 0xcfcf,
+		[FRL_10G4L] = 0xcfcf,
+		[FRL_12G4L] = 0xafaf,
+	};
+	const u8 ffe[] = {
+		[FRL_NONE] = 0x00,
+		[FRL_3G3L] = 0x00,
+		[FRL_6G3L] = 0x00,
+		[FRL_6G4L] = 0x00,
+		[FRL_8G4L] = 0x01,
+		[FRL_10G4L] = 0x0a,
+		[FRL_12G4L] = 0x2b,
+	};
+	const u8 drv[] = {
+		[FRL_NONE] = 0x11,
+		[FRL_3G3L] = 0x03,
+		[FRL_6G3L] = 0x03,
+		[FRL_6G4L] = 0x33,
+		[FRL_8G4L] = 0x77,
+		[FRL_10G4L] = 0x77,
+		[FRL_12G4L] = 0x77,
+	};
+	const u16 rterm_val[] = {
+		[1] = 0x00,
+		[2] = 0x04,
+		[3] = 0x0c,
+		[4] = 0x1c,
+		[5] = 0x3c,
+		[6] = 0x01,
+		[7] = 0x05,
+		[8] = 0x0d,
+		[9] = 0x1d,
+		[10] = 0x3d,
+		[11] = 0x03,
+		[12] = 0x07,
+		[13] = 0x0f,
+		[14] = 0x1f,
+		[15] = 0x3f,
+	};
+	u8 rterm_efuse = 9; /* this will get from ufuse */
+	struct arm_smccc_res res;
 
-	paddr = (void *)((unsigned long)(get_base_addr(idx) + offset_addr));
-	writel(val, paddr);
-}
+	/* Stage6: enable rterm_efuse */
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL0, 0xd8, 16, 8);
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL0, 0x3, 24, 2);
+	arm_smccc_smc(HDCPTX_IOOPR, HDMITX_GET_RTERM, 0, 0, 0, 0, 0, 0, &res);
+	rterm_efuse = (unsigned int)((res.a0) & 0xffffffff);
+	rterm_efuse = rterm_efuse & 0x3f;
+	printf("%s[%d] rterm_efuse = %d\n", __func__, __LINE__, rterm_efuse);
+	if (!rterm_efuse)
+		rterm_efuse = 9; /* default value when efuse invalid */
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL0, rterm_val[rterm_efuse], 26, 6);
+	hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL3, 0x06, 8, 8);
+	ndelay(10);
 
-void hd_set_reg_bits(unsigned int addr, unsigned int value,
-	unsigned int offset, unsigned int len)
-{
-	unsigned int data32 = 0;
+	/* Stage7: set output swing */
+	if (frl_rate != FRL_NONE && frl_rate <= FRL_12G4L) {
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL0, swing[frl_rate], 0, 16);
+	} else {
+		u32 swing = 0;
 
-	data32 = hd_read_reg(addr);
-	data32 &= ~(((1 << len) - 1) << offset);
-	data32 |= (value & ((1 << len) - 1)) << offset;
-	hd_write_reg(addr, data32);
-}
+		if (tmds_clk > 300000)
+			swing = 0x90d5;
+		else if (tmds_clk > 150000)
+			swing = 0x7082;
+		else
+			swing = 0x5062;
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL0, swing, 0, 16);
+	};
+	ndelay(10);
 
-static unsigned int hdmitx_rd_reg_normal(unsigned int addr)
-{
-	unsigned int data;
-	register long x0 asm("x0") = 0x82000018;
-	register long x1 asm("x1") = (unsigned long)addr;
+	/* Stage8: set ffe */
+	if (frl_rate != FRL_NONE && frl_rate <= FRL_12G4L)
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL3, ffe[frl_rate], 0, 8);
+	else
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL3, 0, 0, 8);
+	ndelay(10);
 
-	asm volatile(
-		__asmeq("%0", "x0")
-		__asmeq("%1", "x1")
-		"smc #0\n"
-		: "+r"(x0) : "r"(x1)
-	);
-	data = (unsigned int)(x0&0xffffffff);
+	/* Stage9: enable driver */
+	if (frl_rate != FRL_NONE && frl_rate <= FRL_12G4L) {
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL3, drv[frl_rate], 16, 8);
+	} else {
+		u32 drv = 0;
 
-	return data;
-}
-
-static void hdmitx_wr_reg_normal(unsigned int addr, unsigned int data)
-{
-	register long x0 asm("x0") = 0x82000019;
-	register long x1 asm("x1") = (unsigned long)addr;
-	register long x2 asm("x2") = data;
-
-	asm volatile(
-		__asmeq("%0", "x0")
-		__asmeq("%1", "x1")
-		__asmeq("%2", "x2")
-		"smc #0\n"
-		: : "r"(x0), "r"(x1), "r"(x2)
-	);
-}
-
-unsigned int hdmitx_rd_reg(unsigned int addr)
-{
-	unsigned int large_offset = addr >> 24;
-	unsigned int small_offset = addr & ((1 << 24)  - 1);
-	unsigned long hdmitx_addr = 0;
-	unsigned int data;
-
-	switch (large_offset) {
-	case 0x10:
-		/*DWC*/
-		hdmitx_addr = HDMITX_DWC_BASE_OFFSET + small_offset;
-		data = readb(hdmitx_addr);
-		break;
-	case 0x11:
-	case 0x01:
-		data = hdmitx_rd_reg_normal(addr);
-		break;
-	case 0x00:
-	default:
-		/* TOP */
-		if ((small_offset >= 0x2000) && (small_offset <= 0x365E)) {
-			hdmitx_addr = HDMITX_TOP_BASE_OFFSET + small_offset;
-			data = readb(hdmitx_addr);
-		} else {
-			hdmitx_addr = HDMITX_TOP_BASE_OFFSET + (small_offset << 2);
-			data = readl(hdmitx_addr);
-		}
-		break;
+		if (tmds_clk > 300000)
+			drv = 0x17;
+		else
+			drv = 0x13;
+		hd21_set_reg_bits(ANACTRL_HDMIPHY_CTRL3, drv, 16, 8);
 	}
-
-	return data;
-}
-
-void hdmitx_wr_reg(unsigned int addr, unsigned int data)
-{
-	unsigned int large_offset = addr >> 24;
-	unsigned int small_offset = addr & ((1 << 24)  - 1);
-	unsigned long hdmitx_addr = 0;
-
-	switch (large_offset) {
-	case 0x10:
-		/*DWC*/
-		hdmitx_addr = HDMITX_DWC_BASE_OFFSET + small_offset;
-		writeb(data & 0xff, hdmitx_addr);
-		break;
-	case 0x11:
-	case 0x01:
-		/*SECURITY DWC/TOP*/
-		hdmitx_wr_reg_normal(addr, data);
-		break;
-	case 00:
-	default:
-		/*TOP*/
-		if ((small_offset >= 0x2000) && (small_offset <= 0x365E)) {
-			hdmitx_addr = HDMITX_TOP_BASE_OFFSET + small_offset;
-			writeb(data & 0xff, hdmitx_addr);
-		} else {
-			hdmitx_addr = HDMITX_TOP_BASE_OFFSET + (small_offset << 2);
-			writel(data, hdmitx_addr);
-		}
-	}
-}
-
-void hdmitx_set_reg_bits(unsigned int addr, unsigned int value,
-	unsigned int offset, unsigned int len)
-{
-	unsigned int data32 = 0;
-
-	data32 = hdmitx_rd_reg(addr);
-	data32 &= ~(((1 << len) - 1) << offset);
-	data32 |= (value & ((1 << len) - 1)) << offset;
-	hdmitx_wr_reg(addr, data32);
-}
-
-void hdmitx_poll_reg(unsigned int addr, unsigned int val, unsigned long timeout)
-{
-}
-
-unsigned int hdmitx_rd_check_reg(unsigned int addr, unsigned int exp_data,
-	unsigned int mask)
-{
-	return 0;
-}
-
-void hdmitx_hdcp_init(void)
-{
-	register long x0 asm("x0") = 0x82000012;
-	asm volatile(
-		__asmeq("%0", "x0")
-		"smc #0\n"
-		: : "r"(x0)
-	);
 }
 
 void hdmitx_set_phypara(enum hdmi_phy_para mode)
 {
-	hd_write_reg(P_ANACTRL_HDMIPHY_CTRL0, 0x0);
-/* P_ANACTRL_HDMIPHY_CTRL1	bit[1]: enable clock	bit[0]: soft reset */
-#define RESET_HDMI_PHY() \
-do { \
-	hd_set_reg_bits(P_ANACTRL_HDMIPHY_CTRL1, 0xf, 0, 4); \
-	mdelay(2); \
-	hd_set_reg_bits(P_ANACTRL_HDMIPHY_CTRL1, 0xe, 0, 4); \
-	mdelay(2); \
-} while (0)
+	struct hdmitx_dev *hdev = get_hdmitx21_device();
+	u32 tmds_clk = 0;
 
-	hd_set_reg_bits(P_ANACTRL_HDMIPHY_CTRL1, 0x0390, 16, 16);
-	hd_set_reg_bits(P_ANACTRL_HDMIPHY_CTRL1, 0x0, 0, 4);
-	RESET_HDMI_PHY();
-	RESET_HDMI_PHY();
-#undef RESET_HDMI_PHY
-
-	switch (mode) {
-	case HDMI_PHYPARA_6G: /* 5.94/4.5/3.7Gbps */
-	case HDMI_PHYPARA_4p5G:
-	case HDMI_PHYPARA_3p7G:
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL0, 0x37eb65c4);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL3, 0x2ab0ff3b);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL5, 0x0000080b);
-		break;
-	case HDMI_PHYPARA_3G: /* 2.97Gbps */
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL0, 0x33eb42a2);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL3, 0x2ab0ff3b);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL5, 0x00000003);
-		break;
-	case HDMI_PHYPARA_270M: /* 1.485Gbps, and below */
-	case HDMI_PHYPARA_DEF:
-	default:
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL0, 0x33eb4252);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL3, 0x2ab0ff3b);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL5, 0x00000003);
-		break;
-	}
+	tmds_clk = hdev->para->tmds_clk;
+	printf("%s[%d] tmds_clk %d\n", __func__, __LINE__, tmds_clk);
+	hdmitx_set_s5_phypara(hdev->frl_rate, tmds_clk);
 }
 
 void hdmitx_turnoff(void)
 {
 	/* Close HDMITX PHY */
-	hd_write_reg(P_ANACTRL_HDMIPHY_CTRL0, 0);
-	hd_write_reg(P_ANACTRL_HDMIPHY_CTRL3, 0);
-	hd_write_reg(P_ANACTRL_HDMIPHY_CTRL5, 0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL0, 0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL3, 0);
+	hd21_write_reg(ANACTRL_HDMIPHY_CTRL6, 0);
 	/* Disable HPLL */
-	hd_write_reg(ANACTRL_HDMIPLL_CTRL0, 0);
+	hd21_write_reg(ANACTRL_HDMIPLL_CTRL0, 0);
 }
 
 void hdmitx_test_prbs(void)
@@ -295,15 +484,15 @@ void hdmitx_test_prbs(void)
 	unsigned int i;
 
 	for (i = 0; i < 4; i ++) {
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL1, 0x0390000f);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL1, 0x0390000e);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL1, 0x03904002);
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL4, 0x0001efff | (i << 20));
-		hd_write_reg(P_ANACTRL_HDMIPHY_CTRL1, 0xef904002);
+		hd21_write_reg(ANACTRL_HDMIPHY_CTRL1, 0x0390000f);
+		hd21_write_reg(ANACTRL_HDMIPHY_CTRL1, 0x0390000e);
+		hd21_write_reg(ANACTRL_HDMIPHY_CTRL1, 0x03904002);
+		hd21_write_reg(ANACTRL_HDMIPHY_CTRL4, 0x0001efff | (i << 20));
+		hd21_write_reg(ANACTRL_HDMIPHY_CTRL1, 0xef904002);
 		mdelay(1);
 		if (i == 0)
-			printf("prbs clk: %08x\n",hd_read_reg(P_ANACTRL_HDMIPLL_CTRL6));
+			printf("prbs clk: %08x\n", hd21_read_reg(ANACTRL_HDMIPLL_CTRL6));
 		else
-			printf("prbs D[%d]: %08x\n", i -1, hd_read_reg(P_ANACTRL_HDMIPLL_CTRL6));
+			printf("prbs D[%d]: %08x\n", i - 1, hd21_read_reg(ANACTRL_HDMIPLL_CTRL6));
 	}
 }
