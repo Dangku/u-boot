@@ -629,22 +629,37 @@ U_BOOT_DEVICES(meson_pwm) = {
 };
 #endif /*end CONFIG_PWM_MESON*/
 
-#if 0
 #if defined(CONFIG_AML_LCD)
 // detect whether the LCD is exist
 void board_lcd_detect(void)
 {
-	u8 value = 1;
+	unsigned int val;
 
-	// detect RESET pin
-	// if the LCD is connected, the RESET pin will be plll high
-	// if the LCD is not connected, the RESET pin will be low
+	/* set gpioa_5 input(lcd_rst)*/
+	writel(readl(PREG_PAD_GPIO5_EN_N) | (1 << 5), PREG_PAD_GPIO5_EN_N);
+	writel(readl(PAD_PULL_UP_EN_REG5) | (1 << 5), PREG_PAD_GPIO5_EN_N);
+	writel(readl(PAD_PULL_UP_REG5) | (1 << 5), PREG_PAD_GPIO5_EN_N);
+	writel(readl(PERIPHS_PIN_MUX_E) | (0xf << 4), PERIPHS_PIN_MUX_E);
 
-	printf("LCD_RESET PIN: %d\n", value);
-	setenv_ulong("lcd_exist", value);
+	/* set gpioa_9 output high to enable lcd power */
+	writel(readl(PREG_PAD_GPIO5_EN_N) & (~(1 << 9)), PREG_PAD_GPIO5_EN_N);
+	writel(readl(PREG_PAD_GPIO5_O) | (1 << 9), PREG_PAD_GPIO5_O);
+	writel(readl(PERIPHS_PIN_MUX_E) & (~(0xf << 4)), PERIPHS_PIN_MUX_E);
+
+	mdelay(100);
+
+	val = readl(PREG_PAD_GPIO5_I);
+	//printf("lcd_detect: val=%x\n", val);
+	val &= ~0xffdf;
+	val = val >> 5;
+	if (val)
+		printf("lcd_detect: lcd connected\n");
+	else
+		printf("lcd_detect: lcd disconnected\n");
+
+	setenv_ulong("lcd_exist", val);
 }
 #endif /* CONFIG_AML_LCD */
-#endif
 
 void board_set_dtb(void)
 {
@@ -706,7 +721,7 @@ int board_init(void)
 	board_i2c_init();
 #endif
 
-	rpi_mcu_init();
+	//rpi_mcu_init();
 
 	return 0;
 }
@@ -726,6 +741,7 @@ int board_late_init(void)
 	run_command("cvbs init", 0);
 #endif
 #ifdef CONFIG_AML_LCD
+	board_lcd_detect();
 	board_get_panel_type();
 	lcd_probe();
 #endif

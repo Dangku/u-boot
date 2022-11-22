@@ -415,7 +415,7 @@ struct aml_i2c_platform g_aml_i2c_plat = {
 #ifdef CONFIG_SYS_I2C_AML_I2C1
 static void board_i2c_set_pinmux(void)
 {
-	/* i2c_2 GPIO_X10/X11  */
+	/* i2c_1 GPIO_X10/X11  */
 	clrbits_le32(PERIPHS_PIN_MUX_4, 0xf << 8 | 0xf << 12);
 	setbits_le32(PERIPHS_PIN_MUX_4, MESON_I2C_MASTER_B_GPIOX_10_BIT | MESON_I2C_MASTER_B_GPIOX_11_BIT);
 }
