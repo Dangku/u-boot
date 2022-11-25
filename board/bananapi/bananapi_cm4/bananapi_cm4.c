@@ -663,21 +663,16 @@ void board_lcd_detect(void)
 
 void board_set_dtb(void)
 {
-	cpu_id_t cpu_id = get_cpu_id();
-
 	if (board_is_bananapi_cm4()) {
 		printf("BPI: board is Bananapi CM4\n");
 		setenv("board", "bananapi_cm4");
 
-		if (cpu_id.family_id == MESON_CPU_MAJOR_ID_G12B) {
-			switch (cpu_id.package_id) {
-				case MESON_CPU_PACKAGE_ID_A311D:
-					setenv("fdtfile", "bananapi_cm4.dtb");
-					break;
-				default:
-					printf("unsupport chip");
-					break;
-			}
+		if (board_is_bpi_cm4io()) {
+			printf("BPI: io board is bpi cm4io\n");
+			setenv("fdtfile", "bananapi_cm4.dtb");
+		} else if(board_is_rpi_cm4io()) {
+			printf("BPI: io board is rpi cm4io\n");
+			setenv("fdtfile", "bananapi_cm4_rpi.dtb");
 		}
 	}
 }

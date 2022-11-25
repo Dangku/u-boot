@@ -32,26 +32,43 @@ int get_boot_device(void)
 	return readl(AO_SEC_GP_CFG0) & 0xf;
 }
 
-static int board_rev = -1;
-
-#define IS_RANGE(x, min, max)   ((x) > (min) && (x) < (max))
-
-#if 0
-static void get_board_type(void)
+static int get_board_type(void)
 {
+	int board_type = -1;
 	int adc;
 
 	adc = get_adc_value(BOARD_TYPE_CHANNEL);
 #if defined(CONFIG_BANANAPI_M2S)
-	if (IS_RANGE(adc, 80, 100)) {
-		/* board is s922x_m2s */
-	} else if (IS_RANGE(adc, 900, 1100)) {
-		/* board is a311d_m2s */
-	}
+	if (IS_RANGE(adc, 0, 50))			/* board is s922x_m2s */
+		board_type = BOARD_S922X_M2S;
+	else if (IS_RANGE(adc, 900, 1100))	/* board is a311d_m2s */
+		board_type = BOARD_A311D_M2S;
+#elif defined(CONFIG_BANANAPI_CM4)
+	if (IS_RANGE(adc, 900, 1100))
+	//if (IS_RANGE(adc, 470, 550))		/* board is a311d_cm4 */
+		board_type = BOARD_A311D_CM4;
 #endif
+
+	return board_type;
+}
+
+#if defined(CONFIG_BANANAPI_CM4)
+static int get_cm4io_board_type(void)
+{
+	int board_type = -1;
+	int adc;
+
+	adc = get_adc_value(CM4IO_BOARD_TYPE_CHANNEL);
+	if (IS_RANGE(adc, 0, 50))			/* board is rpi cm4io */
+		board_type = BOARD_CM4IO_BPI;
+	else if (IS_RANGE(adc, 900, 1100))	/* board is bpi cm4io */
+		board_type = BOARD_CM4IO_RPI;
+
+	return board_type;
 }
 #endif
 
+#if 0
 static unsigned int get_hw_revision(void)
 {
 	int hwrev = -1;
@@ -70,6 +87,42 @@ static unsigned int get_hw_revision(void)
 
 	return hwrev;
 }
+
+static int board_rev = -1;
+int board_revision(void)
+{
+	if (board_rev == -1)
+		board_rev = get_hw_revision();
+
+	return board_rev;
+}
+#endif
+
+#if defined(CONFIG_BANANAPI_M2S)
+int board_is_bananapi_s922x_m2s(void)
+{
+	return (get_board_type() == BOARD_S922X_M2S);
+}
+int board_is_bananapi_a311d_m2s(void)
+{
+	return (get_board_type() == BOARD_A311D_M2S);
+}
+#elif defined(CONFIG_BANANAPI_CM4)
+int board_is_bananapi_cm4(void)
+{
+	return (get_board_type() == BOARD_A311D_CM4);
+}
+
+int board_is_bpi_cm4io(void)
+{
+	return (get_cm4io_board_type() == BOARD_CM4IO_BPI);
+}
+
+int board_is_rpi_cm4io(void)
+{
+	return (get_cm4io_board_type() == BOARD_CM4IO_RPI);
+}
+#endif
 
 #if defined(CONFIG_EFUSE_SN)
 int get_efuse_board_serial(void)
@@ -124,28 +177,8 @@ void board_chip_id(void)
 void get_board_serial(void)
 {
 #if defined(CONFIG_EFUSE_SN)
-    get_efuse_board_serial();
+	get_efuse_board_serial();
 #else
 	board_chip_id();
 #endif
 }
-
-int board_revision(void)
-{
-	if (board_rev == -1)
-		board_rev = get_hw_revision();
-
-	return board_rev;
-}
-
-#if defined(CONFIG_BANANAPI_M2S)
-int board_is_bananapi_m2s(void)
-{
-	return (board_revision() == 0x20220420);
-}
-#elif defined(CONFIG_BANANAPI_CM4)
-int board_is_bananapi_cm4(void)
-{
-	return (board_revision() == 0x20220820);
-}
-#endif

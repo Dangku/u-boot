@@ -24,14 +24,29 @@ extern int get_adc_value(int channel);
 
 #define BOARD_REVISION(y,m,d)	(((0x##y & 0xffff) << 16) \
 		| ((0x##m & 0xff) << 8) | ((0x##d & 0xff) << 0))
-#define BOARD_TYPE_CHANNEL	0
+
+#define IS_RANGE(x, min, max)   ((x) > (min) && (x) < (max))
+
+#define BOARD_TYPE_CHANNEL		0
 #define BOARD_REV_CHANNEL		1
+#define CM4IO_BOARD_TYPE_CHANNEL	3
+
+#define BOARD_S922X_M2S                 0
+#define BOARD_A311D_M2S                 1
+#define BOARD_A311D_CM4                 2
+
+#define BOARD_CM4IO_BPI			0
+#define BOARD_CM4IO_RPI			1
+
 int board_revision(void);
 void get_board_serial(void);
 
 #if defined(CONFIG_BANANAPI_M2S)
-int board_is_bananapi_m2s(void);
+int board_is_bananapi_s922x_m2s(void);
+int board_is_bananapi_a311d_m2s(void);
 #elif defined(CONFIG_BANANAPI_CM4)
 int board_is_bananapi_cm4(void);
+int board_is_rpi_cm4io(void);
+int board_is_bpi_cm4io(void);
 #endif
 #endif

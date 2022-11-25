@@ -662,25 +662,14 @@ void board_lcd_detect(void)
 
 void board_set_dtb(void)
 {
-	cpu_id_t cpu_id = get_cpu_id();
-
-	if (board_is_bananapi_m2s()) {
-		printf("BPI: board is Bananapi M2S\n");
+	if (board_is_bananapi_s922x_m2s()){
+		printf("BPI: board is Bananapi S922X M2S\n");
 		setenv("board", "bananapi_m2s");
-
-		if (cpu_id.family_id == MESON_CPU_MAJOR_ID_G12B) {
-			switch (cpu_id.package_id) {
-				case MESON_CPU_PACKAGE_ID_922X:
-					setenv("fdtfile", "bananapi_m2s_922x.dtb");
-					break;
-				case MESON_CPU_PACKAGE_ID_A311D:
-					setenv("fdtfile", "bananapi_m2s.dtb");
-					break;
-				default:
-					printf("unsupport chip");
-					break;
-			}
-		}
+		setenv("fdtfile", "bananapi_m2s_922x.dtb");
+	} else if(board_is_bananapi_a311d_m2s()) {
+		printf("BPI: board is Bananapi A311D M2S\n");
+		setenv("board", "bananapi_m2s");
+		setenv("fdtfile", "bananapi_m2s.dtb");
 	}
 }
 
