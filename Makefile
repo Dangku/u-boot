@@ -390,7 +390,9 @@ cc-param = $(call cc-option, -mllvm -$(1), $(call cc-option, --param $(1)))
 # UASAN_SHADOW_OFFSET = (UASAN_DDR_SIZE * 7 / 8 - 256) <<  20
 # use 256 MB space for uboot and malloc/stack
 UASAN_SHADOW_OFFSET=$(shell printf "0x%08x\n" $$(( (((($(UASAN_DDR_SIZE) * 7) >> 3) - 256) << 20) )) )
-CFLAGS_UASAN += -fsanitize=kernel-address
+CFLAGS_UASAN += -fsanitize=kernel-address \
+		-fsanitize-address-use-after-scope
+
 CFLAGS_UASAN += $(call cc-param,asan-globals=1)
 CFLAGS_UASAN += $(call cc-param,asan-stack=1)
 CFLAGS_UASAN += $(call cc-param,asan-use-after-scope=1)
