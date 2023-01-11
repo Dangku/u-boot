@@ -25,7 +25,7 @@ extern int get_adc_value(int channel);
 #define BOARD_REVISION(y,m,d)	(((0x##y & 0xffff) << 16) \
 		| ((0x##m & 0xff) << 8) | ((0x##d & 0xff) << 0))
 
-#define IS_RANGE(x, min, max)   ((x) > (min) && (x) < (max))
+#define IS_RANGE(x, min, max)   ((x) >= (min) && (x) < (max))
 
 #define BOARD_TYPE_CHANNEL		0
 #define BOARD_REV_CHANNEL		1
