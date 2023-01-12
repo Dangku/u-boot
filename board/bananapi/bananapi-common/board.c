@@ -38,14 +38,14 @@ static int get_board_type(void)
 	int adc;
 
 	adc = get_adc_value(BOARD_TYPE_CHANNEL);
+	printf("BPI, saradc_ch0=%d\n", adc);
 #if defined(CONFIG_BANANAPI_M2S)
-	if (IS_RANGE(adc, 0, 50))			/* board is s922x_m2s */
+	if (IS_RANGE(adc, 0, 50))		/* board is s922x_m2s */
 		board_type = BOARD_S922X_M2S;
 	else if (IS_RANGE(adc, 900, 1100))	/* board is a311d_m2s */
 		board_type = BOARD_A311D_M2S;
 #elif defined(CONFIG_BANANAPI_CM4)
-	if (IS_RANGE(adc, 900, 1100))
-	//if (IS_RANGE(adc, 470, 550))		/* board is a311d_cm4 */
+	if (IS_RANGE(adc, 470, 550))		/* board is a311d_cm4 */
 		board_type = BOARD_A311D_CM4;
 #endif
 
@@ -59,9 +59,10 @@ static int get_cm4io_board_type(void)
 	int adc;
 
 	adc = get_adc_value(CM4IO_BOARD_TYPE_CHANNEL);
-	if (IS_RANGE(adc, 0, 50))			/* board is rpi cm4io */
+	printf("BPI, saradc_ch3=%d\n", adc);
+	if (IS_RANGE(adc, 0, 50))		/* board is bpi cm4io */
 		board_type = BOARD_CM4IO_BPI;
-	else if (IS_RANGE(adc, 900, 1100))	/* board is bpi cm4io */
+	else if (IS_RANGE(adc, 900, 1100))	/* board is rpi cm4io */
 		board_type = BOARD_CM4IO_RPI;
 
 	return board_type;
