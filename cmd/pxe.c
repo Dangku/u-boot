@@ -394,8 +394,8 @@ do_pxe_get(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 * for.
 	 */
 	if (pxe_uuid_path(cmdtp, pxefile_addr_r) > 0 ||
-	    pxe_mac_path(cmdtp, pxefile_addr_r) > 0 ||
-	    pxe_ipaddr_paths(cmdtp, pxefile_addr_r) > 0) {
+		pxe_mac_path(cmdtp, pxefile_addr_r) > 0 ||
+		pxe_ipaddr_paths(cmdtp, pxefile_addr_r) > 0) {
 		printf("Config file found\n");
 
 		return 0;
@@ -810,47 +810,58 @@ cleanup:
 
 static void env_helper(cmd_tbl_t *cmdtp, struct pxe_label *label)
 {
-    char *buf;
-    char *env_file = "uEnv.txt";
-    char *env_addr = env_get("scriptaddr");
-    char *bootfile = env_get("bootfile");
-    char *syslinux = env_get("boot_syslinux_conf");
-    char *pref;
-    char path[MAX_TFTP_PATH_LEN + 1];
-    unsigned long addr, file_size = 0;
+	char *buf;
+	char *env_file = "uEnv.txt";
+	char *env_addr = env_get("scriptaddr");
+	char *bootfile = env_get("bootfile");
+	char *syslinux = env_get("boot_syslinux_conf");
+	char *pref = NULL;
+	char path[MAX_TFTP_PATH_LEN + 1];
+	unsigned long addr, file_size = 0;
+	int len = 0;
 
-    if (!env_addr)
-	return;
-    if (strict_strtoul(env_addr, 16, &addr) < 0)
-	return;
+	if (!env_addr)
+		return;
+	if (strict_strtoul(env_addr, 16, &addr) < 0)
+		return;
 
-    /*
-     * resolv right path for both syslinux and pxe variants
-     */
-    if (bootfile)
-	strcpy(path, bootfile);
-    if (syslinux && (pref = strstr(path,syslinux)))
-	*pref = '\0';
-    else
-	path[0] = '\0';
+	memset(path, 0, sizeof(path));
 
-    if (strlen(path) + strlen(env_file) > MAX_TFTP_PATH_LEN) {
-	printf("path (%s%s) too long, skipping\n", path, env_file);
-	return;
-    }
+	/*
+	 * resolv right path for both syslinux and pxe variants
+	 */
+	if (bootfile) {
+		len = min(sizeof(path), strlen(bootfile));
+		strncpy(path, bootfile, len);
+	}
 
-    strcat(path, env_file);
+	if (syslinux)
+		pref = strstr(path, syslinux);
 
-    if (get_relfile(cmdtp, path, addr) < 0)
-	return;
-    if (strict_strtoul(from_env("filesize"), 16, &file_size))
-	return;
-    if (file_size < 1)
-	return;
+	if (syslinux && pref)
+		*pref = '\0';
+	else
+		path[0] = '\0';
 
-    printf("Import user vars: %s %ld bytes\n", path, file_size);
-    buf = map_sysmem(addr , 0);
-    himport_r(&env_htab, buf, file_size, '\n', H_NOCLEAR, 0, 0, NULL);
+	if (strlen(path) + strlen(env_file) > MAX_TFTP_PATH_LEN) {
+		printf("path (%s%s) too long, skipping\n", path, env_file);
+		return;
+	}
+
+	strcat(path, env_file);
+
+	if (get_relfile(cmdtp, path, addr) < 0)
+		return;
+	if (from_env("filesize") == NULL)
+		return;
+	if (strict_strtoul(from_env("filesize"), 16, &file_size))
+		return;
+	if (file_size < 1)
+		return;
+
+	printf("Import user vars: %s %ld bytes\n", path, file_size);
+	buf = map_sysmem(addr, 0);
+	himport_r(&env_htab, buf, file_size, '\n', H_NOCLEAR, 0, 0, NULL);
 }
 
 /*
@@ -1850,7 +1861,7 @@ static struct menu *pxe_menu_to_menu(struct pxe_menu *cfg)
 			return NULL;
 		}
 		if (cfg->default_label &&
-		    (strcmp(label->name, cfg->default_label) == 0))
+			(strcmp(label->name, cfg->default_label) == 0))
 			default_num = label->num;
 
 	}
