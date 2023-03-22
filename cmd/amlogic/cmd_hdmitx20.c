@@ -762,6 +762,12 @@ static void get_parse_edid_data(struct hdmitx_dev *hdev)
 			if (blk_no > 4)
 				blk_no = 4; /* MAX Read Blocks 4 */
 		}
+		if (byte_num == 128) {
+			if (edid[128 + 4] == 0xe2 && edid[128 + 5] == 0x78)
+				blk_no = edid[128 + 6] + 1;
+			if (blk_no > EDID_BLK_NO)
+				blk_no = EDID_BLK_NO; /* MAX Read Blocks 8 */
+		}
 		byte_num += 8;
 	}
 
