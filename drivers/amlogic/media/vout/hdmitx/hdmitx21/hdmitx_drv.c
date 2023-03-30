@@ -42,7 +42,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void hdmitx_set_hw(struct hdmitx_dev *hdev);
 static int hdmitx_set_audmode(struct hdmitx_dev *hdev);
-static bool is_frl_mode(void);
 
 static void hdmi_hwp_init(void)
 {
