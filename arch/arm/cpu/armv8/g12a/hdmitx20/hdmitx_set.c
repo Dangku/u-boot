@@ -66,7 +66,11 @@ static int hdmitx_get_hpd_state(void)
 {
 	int st = 0;
 
-	st = !!(hd_read_reg(P_PREG_PAD_GPIO3_I) & (1 << 2));
+	if (!strcmp("true", getenv("disablehpd")))
+		st = 1;
+	 else
+		st = !!(hd_read_reg(P_PREG_PAD_GPIO3_I) & (1 << 2));
+
 	return st;
 }
 
