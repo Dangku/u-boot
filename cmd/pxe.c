@@ -1041,9 +1041,9 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
 			}
 #ifdef CONFIG_OF_LIBFDT_OVERLAY
 		    if (label->fdtoverlays)
-			label_boot_fdtoverlay(cmdtp, label);
+				label_boot_fdtoverlay(cmdtp, label);
 		    else
-			fdt_overlay_helper(cmdtp, label, fdtfile);
+				fdt_overlay_helper(cmdtp, label, fdtfile);
 #endif
 			if (!strcmp(env_get("mipi_lcd_exist"), "0")) {
 				printf("MIPI LCD not exist, disable lcd node.\n");

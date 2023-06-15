@@ -47,6 +47,9 @@
 #ifdef CONFIG_AML_HDMITX20
 #include <amlogic/media/vout/hdmitx/hdmitx_module.h>
 #endif
+#ifdef CONFIG_AML_HDMITX21
+#include <amlogic/media/vout/hdmitx21/hdmitx_ext.h>
+#endif
 #ifdef CONFIG_AML_LCD
 #include <amlogic/media/vout/lcd/lcd_vout.h>
 #endif
@@ -167,6 +170,11 @@ int board_init(void)
 int board_late_init(void)
 {
 	printf("board late init\n");
+#ifdef CONFIG_AML_HDMITX21
+	printf("hdmitx21_init\n");
+	hdmitx21_init();
+	hdmitx21_chip_type_init(MESON_CPU_ID_S5);
+#endif
 #ifdef CONFIG_PXP_EMULATOR
 	return 0;
 #else

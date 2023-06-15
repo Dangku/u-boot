@@ -187,7 +187,6 @@ static int do_source(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return rcode;
 }
 
-
 #ifdef CONFIG_SYS_LONGHELP
 static char source_help_text[] =
 	"[addr]\n"
