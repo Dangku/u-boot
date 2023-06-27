@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Amlogic, Inc. All rights reserved.
+ */
+
+/dts-v1/;
+
+#include "bananapi-common.dtsi"
+#include "bananapi-panel.dtsi"
+
+/ {
+	compatible = "amlogic,bananapi-cm5", "amlogic,t7-txxx", "amlogic,meson-t7";
+	model = "Bananapi CM5";
+};
+
+&amhdmitx {
+	enc_idx = <0>; /* value can be 0 or 2 */
+};
