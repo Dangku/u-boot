@@ -367,7 +367,7 @@
 			"fi;"\
 			"\0"\
 		"load_bmp_logo="\
-			"if load mmc 0:2 ${loadaddr} /usr/share/amlbian/logo/logo.bmp || load mmc 1:2 ${loadaddr} /usr/share/amlbian/logo/logo.bmp || load mmc 1:4 ${loadaddr} /usr/share/amlbian/logo/logo.bmp; then "\
+			"if load mmc 0:1 ${loadaddr} /boot-logo.bmp || load mmc 1:1 ${loadaddr} /boot-logo.bmp; then "\
 				"bmp display ${loadaddr};"\
 				"bmp scale;"\
 			"fi;"\
@@ -448,7 +448,7 @@
 		"dv_fw_addr=0xa00000\0"\
 		"otg_device=1\0" \
 		"panel_type=vbyone_0\0" \
-		"panel1_type=vbyone_2\0" \
+		"panel1_type=mipi_0\0" \
 		"panel2_type=lvds_1\0" \
 		"lcd_ctrl=0x00000000\0" \
 		"lcd1_ctrl=0x00000000\0" \
@@ -523,7 +523,7 @@
 			"\0"\
 		"initargs="\
 			"rootflags=data=writeback rw rootfstype=ext4" CONFIG_KNL_LOG_LEVEL ""\
-			"console=ttyS0,921600 console=tty0 no_console_suspend "\
+			"console=tty1 console=ttyS0,921600 no_console_suspend "\
 			"earlycon=aml-uart,0xfe078000 fsck.repair=yes net.ifnames=0 "\
 			"amlogic_board=t7_an400_lpddr4x_debian boot_source=${boot_source} "\
 			"scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
@@ -722,7 +722,7 @@
 			"fi;"\
 			"\0"\
 		"load_bmp_logo="\
-			"if load mmc 0:2 ${loadaddr} /usr/share/amlbian/logo/logo.bmp || load mmc 1:2 ${loadaddr} /usr/share/amlbian/logo/logo.bmp || load mmc 1:4 ${loadaddr} /usr/share/amlbian/logo/logo.bmp; then "\
+			"if load mmc 0:1 ${loadaddr} /boot-logo.bmp || load mmc 1:1 ${loadaddr} /boot-logo.bmp; then "\
 				"bmp display ${loadaddr};"\
 				"bmp scale;"\
 			"fi;"\

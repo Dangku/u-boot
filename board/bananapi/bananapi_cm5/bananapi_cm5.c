@@ -46,6 +46,10 @@ DECLARE_GLOBAL_DATA_PTR;
 
 void sys_led_init(void)
 {
+	/* green on, active low */
+	run_command("gpio clean GPIOD_7", 0);
+	/* blue off, active low*/
+	run_command("gpio set GPIOH_5", 0);
 }
 
 int serial_set_pin_port(unsigned long port_base)
@@ -202,6 +206,9 @@ int board_init(void)
 #endif//#if defined(CONFIG_AML_V3_FACTORY_BURN) && defined(CONFIG_AML_V3_USB_TOOl)
 
 	pinctrl_devices_active(PIN_CONTROLLER_NUM);
+
+	sys_led_init();
+
 	/*set vcc5V*/
 	run_command("gpio set GPIOH_1", 0);
 	return 0;
@@ -263,6 +270,8 @@ int board_late_init(void)
 #endif
 #ifdef CONFIG_AML_LCD
 	lcd_probe();
+	/* cm4io backlight on */
+	run_command("gpio set GPIOY_5", 0);
 #endif
 
 	unsigned char chipid[16];
