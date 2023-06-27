@@ -2005,6 +2005,7 @@ config CMD_CFGLOAD
 
 config CMD_KHADAS_KBI
 	bool "support khadas kbi"
+	depends on KHADAS_VIM4 || KHADAS_VIM1S
 	default y
 	help
 	  support config for khadas kbi

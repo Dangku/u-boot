@@ -116,13 +116,13 @@ config AMLOGIC_TIME_PROFILE
 		catch and dump function/commands which cost long time
 		This option should be done with env "setenv time_profile 1"
 
-config SYS_VENDOR
-	string "Vendor name"
-	default "amlogic"
-	help
-	  This option contains information about board name.
-	  Based on this option board/<CONFIG_SYS_VENDOR>/<CONFIG_SYS_BOARD> will
-	  be used.
+#config SYS_VENDOR
+#	string "Vendor name"
+#	default "amlogic"
+#	help
+#	  This option contains information about board name.
+#	  Based on this option board/<CONFIG_SYS_VENDOR>/<CONFIG_SYS_BOARD> will
+#	  be used.
 
 config NEED_BL32
 	bool "Enable bl32"
@@ -567,6 +567,12 @@ config S4_AP2327
 	help
 		Select S4 AP2327(XXXX) config
 
+config KHADAS_VIM1S
+        bool "Khadas VIM1S"
+        select TARGET_KHADAS_VIM1S
+        help
+          Select Khadas VIM1S config
+
 endchoice
 
 config TARGET_S4_SKT
@@ -619,6 +625,10 @@ config TARGET_S4_AP2327
 
 config TARGET_S4_AP229_S905C3ENG
 	bool "S4 AP229 S905C3ENG board"
+
+config TARGET_KHADAS_VIM1S
+        bool "Khadas VIM1S board"
+        depends on KHADAS_VIM1S
 
 endif
 
@@ -1201,6 +1211,18 @@ config T7_REVC_SKT
 	help
 	  Select T7 REVC SKT(XXXX) config
 
+config KHADAS_VIM4
+        bool "Khadas VIM4"
+        select TARGET_KHADAS_VIM4
+        help
+          Select Khadas VIM4 config
+
+config BANANAPI_CM5
+	bool "BANANAPI_CM5"
+	select TARGET_BANANAPI_CM5
+	help
+	  Select Bananapi CM5 config
+
 endchoice
 
 config TARGET_T7_SKT
@@ -1242,6 +1264,14 @@ config TARGET_T7_AN400P_LPDDR4X
 config TARGET_T7_REVC_SKT
 	bool "T7 REVC SKT board"
 	depends on T7_REVC_SKT
+
+config TARGET_KHADAS_VIM4
+        bool "Khadas VIM4 board"
+        depends on KHADAS_VIM4
+
+config TARGET_BANANAPI_CM5
+	bool "Bananapi CM5 board"
+	depends on BANANAPI_CM5
 
 endif
 
@@ -1649,3 +1679,9 @@ source "board/amlogic/a4_ba400/Kconfig"
 source "board/amlogic/a4_ba400_zircon/Kconfig"
 
 source "board/amlogic/a4_ba409/Kconfig"
+
+source "board/bananapi/bananapi_cm5/Kconfig"
+
+source "board/khadas/kvim4/Kconfig"
+
+source "board/khadas/kvim1s/Kconfig"
