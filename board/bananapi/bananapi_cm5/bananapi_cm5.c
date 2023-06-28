@@ -17,8 +17,6 @@
 #include <asm-generic/gpio.h>
 #include <dm.h>
 #include <asm/armv8/mmu.h>
-#include <amlogic/aml_v3_burning.h>
-#include <amlogic/aml_v2_burning.h>
 #include <linux/mtd/partitions.h>
 #include <asm/arch/bl31_apis.h>
 #ifdef CONFIG_AML_VPU
@@ -160,6 +158,42 @@ static void set_fdtfile(void)
 	env_set("fdtfile", "amlogic/" CONFIG_DEFAULT_DEVICE_TREE".dtb");
 }
 
+static void load_fdtfile(void)
+{
+	if (run_command("run common_dtb_load", 0) ) {
+		printf("Fail in load dtb with cmd[%s]\n", env_get("common_dtb_load"));
+	}
+}
+
+static void set_chipid(void)
+{
+	unsigned char chipid[16];
+
+	memset(chipid, 0, 16);
+
+	if (get_chip_id(chipid, 16) != -1) {
+		char chipid_str[32];
+		int i, j;
+		char buf_tmp[4];
+
+		memset(chipid_str, 0, 32);
+
+		char *buff = &chipid_str[0];
+
+		for (i = 0, j = 0; i < 12; ++i) {
+			sprintf(&buf_tmp[0], "%02x", chipid[15 - i]);
+			if (strcmp(buf_tmp, "00") != 0) {
+				sprintf(buff + j, "%02x", chipid[15 - i]);
+				j = j + 2;
+			}
+		}
+		env_set("cpu_id", chipid_str);
+		printf("cpu_id: %s\n", buff);
+	} else {
+		env_set("cpu_id", "1234567890");
+	}
+}
+
 #ifdef CONFIG_AML_HDMITX21
 static void hdmitx_set_hdmi_5v(void)
 {
@@ -194,23 +228,10 @@ int board_init(void)
 	run_command("watchdog off", 0);
 	printf("watchdog disable\n");
 
-	aml_set_bootsequence(0);
-	/* Please keep try usb boot first in board_init, as other init
-	 * before usb may cause burning failure
-	 */
-
-#if defined(CONFIG_AML_V3_FACTORY_BURN) && defined(CONFIG_AML_V3_USB_TOOl)
-	if ((readl(SYSCTRL_SEC_STICKY_REG2) != 0x1b8ec003) &&
-		(readl(SYSCTRL_SEC_STICKY_REG2) != 0x1b8ec004))
-		aml_v3_factory_usb_burning(0, gd->bd);
-#endif//#if defined(CONFIG_AML_V3_FACTORY_BURN) && defined(CONFIG_AML_V3_USB_TOOl)
-
 	pinctrl_devices_active(PIN_CONTROLLER_NUM);
 
 	sys_led_init();
 
-	/*set vcc5V*/
-	run_command("gpio set GPIOH_1", 0);
 	return 0;
 }
 
@@ -218,39 +239,11 @@ int board_late_init(void)
 {
 	printf("board late init\n");
 
-	//default uboot env need before anyone use it
-	if (env_get("default_env")) {
-		printf("factory reset, need default all uboot env.\n");
-		run_command("defenv_reserv; setenv upgrade_step 2; saveenv;", 0);
-	}
-
-	run_command("echo upgrade_step $upgrade_step; if itest ${upgrade_step} == 1; then "
-			"defenv_reserv; setenv upgrade_step 2; saveenv; fi;", 0);
 	board_init_mem();
-
-	// Set boot source
+	set_chipid();
 	set_boot_source();
-
 	set_fdtfile();
-#ifndef CONFIG_SYSTEM_RTOS //pure rtos not need dtb
-	if (run_command("run common_dtb_load", 0)) {
-		printf("Fail in load dtb with cmd[%s]\n", env_get("common_dtb_load"));
-	} else {
-		//load dtb here then users can directly use 'fdt' command
-		printf("Load dtb\n");
-		run_command("if fdt addr ${dtb_mem_addr}; then "
-					"else echo no valid dtb at ${dtb_mem_addr};fi;", 0);
-	}
-#endif//#ifndef CONFIG_SYSTEM_RTOS //pure rtos not need dtb
-
-#ifdef CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE //try auto upgrade from ext-sdcard
-	aml_try_factory_sdcard_burning(0, gd->bd);
-#endif//#ifdef CONFIG_AML_FACTORY_BURN_LOCAL_UPGRADE
-	//auto enter usb mode after board_late_init if 'adnl.exe setvar burnsteps 0x1b8ec003'
-#if defined(CONFIG_AML_V3_FACTORY_BURN) && defined(CONFIG_AML_V3_USB_TOOl)
-	if (readl(SYSCTRL_SEC_STICKY_REG2) == 0x1b8ec003)
-		aml_v3_factory_usb_burning(0, gd->bd);
-#endif//#if defined(CONFIG_AML_V3_FACTORY_BURN) && defined(CONFIG_AML_V3_USB_TOOl)
+    load_fdtfile();
 
 #ifdef CONFIG_AML_VPU
 	vpu_probe();
@@ -270,48 +263,9 @@ int board_late_init(void)
 #endif
 #ifdef CONFIG_AML_LCD
 	lcd_probe();
-	/* cm4io backlight on */
+	/* cm4io backlight on because pin 41 (GPIOY_5) not support pwm */
 	run_command("gpio set GPIOY_5", 0);
 #endif
-
-	unsigned char chipid[16];
-
-	memset(chipid, 0, 16);
-
-	if (get_chip_id(chipid, 16) != -1) {
-		char chipid_str[32];
-		int i, j;
-		char buf_tmp[4];
-
-		memset(chipid_str, 0, 32);
-
-		char *buff = &chipid_str[0];
-
-		for (i = 0, j = 0; i < 12; ++i) {
-			sprintf(&buf_tmp[0], "%02x", chipid[15 - i]);
-			if (strcmp(buf_tmp, "00") != 0) {
-				sprintf(buff + j, "%02x", chipid[15 - i]);
-				j = j + 2;
-			}
-		}
-		env_set("cpu_id", chipid_str);
-		printf("buff: %s\n", buff);
-	} else {
-		env_set("cpu_id", "1234567890");
-	}
-//	run_command("amlsecurecheck", 0);
-//	run_command("update_tries", 0);
-
-	/* The board id is used to determine if the NN needs to adjust voltage */
-	switch (readl(SYSCTRL_SEC_STATUS_REG4) >> 8 & 0xff) {
-	case 2:
-		/* The NN needs to adjust the voltage */
-		env_set_ulong("nn_adj_vol", 1);
-		break;
-	default:
-		/* The NN does not need to adjust the voltage */
-		env_set_ulong("nn_adj_vol", 0);
-	}
 
 	return 0;
 }
@@ -395,225 +349,3 @@ int ft_board_setup(void *blob, bd_t *bd)
 	return 0;
 }
 
-/* partition table for spinor flash */
-#ifdef CONFIG_SPI_FLASH
-static const struct mtd_partition spiflash_partitions[] = {
-	{
-		.name = "env",
-		.offset = 0,
-		.size = 1 * SZ_256K,
-	},
-	{
-		.name = "dtb",
-		.offset = 0,
-		.size = 1 * SZ_256K,
-	},
-	{
-		.name = "boot",
-		.offset = 0,
-		.size = 2 * SZ_1M,
-	},
-	/* last partition get the rest capacity */
-	{
-		.name = "user",
-		.offset = MTDPART_OFS_APPEND,
-		.size = MTDPART_SIZ_FULL,
-	}
-};
-
-const struct mtd_partition *get_spiflash_partition_table(int *partitions)
-{
-	*partitions = ARRAY_SIZE(spiflash_partitions);
-	return spiflash_partitions;
-}
-#endif /* CONFIG_SPI_FLASH */
-
-#ifdef CONFIG_MESON_NFC
-static struct mtd_partition normal_partition_info[] = {
-{
-	.name = BOOT_BL2E,
-	.offset = 0,
-	.size = 0,
-},
-{
-	.name = BOOT_BL2X,
-	.offset = 0,
-	.size = 0,
-},
-{
-	.name = BOOT_DDRFIP,
-	.offset = 0,
-	.size = 0,
-},
-{
-	.name = BOOT_DEVFIP,
-	.offset = 0,
-	.size = 0,
-},
-{
-	.name = "logo",
-	.offset = 0,
-	.size = 2 * SZ_1M,
-},
-{
-	.name = "recovery",
-	.offset = 0,
-	.size = 16 * SZ_1M,
-},
-{
-	.name = "boot",
-	.offset = 0,
-	.size = 16 * SZ_1M,
-},
-{
-	.name = "system",
-	.offset = 0,
-	.size = 64 * SZ_1M,
-},
-/* last partition get the rest capacity */
-{
-	.name = "data",
-	.offset = MTDPART_OFS_APPEND,
-	.size = MTDPART_SIZ_FULL,
-},
-};
-
-struct mtd_partition *get_aml_mtd_partition(void)
-{
-	return normal_partition_info;
-}
-
-int get_aml_partition_count(void)
-{
-	return ARRAY_SIZE(normal_partition_info);
-}
-
-#endif
-
-/* partition table */
-/* partition table for spinand flash */
-#if (defined(CONFIG_SPI_NAND) || defined(CONFIG_MTD_SPI_NAND))
-static const struct mtd_partition spinand_partitions[] = {
-	{
-		.name = "logo",
-		.offset = 0,
-		.size = 2 * SZ_1M,
-	},
-	{
-		.name = "recovery",
-		.offset = 0,
-		.size = 16 * SZ_1M,
-	},
-	{
-		.name = "boot",
-		.offset = 0,
-		.size = 16 * SZ_1M,
-	},
-	{
-		.name = "system",
-		.offset = 0,
-		.size = 64 * SZ_1M,
-	},
-	/* last partition get the rest capacity */
-	{
-		.name = "data",
-		.offset = MTDPART_OFS_APPEND,
-		.size = MTDPART_SIZ_FULL,
-	}
-};
-
-const struct mtd_partition *get_partition_table(int *partitions)
-{
-	*partitions = ARRAY_SIZE(spinand_partitions);
-	return spinand_partitions;
-}
-#endif /* CONFIG_SPI_NAND */
-
-#ifdef CONFIG_MULTI_DTB
-phys_size_t get_ddr_memsize(void)
-{
-	phys_size_t ddr_size = env_get_hex("board_ddr_size", 0);
-
-	if (!ddr_size) {
-		ddr_size = (((readl(SYSCTRL_SEC_STATUS_REG4)) & ~0xffffUL) << 4);
-		printf("init board ddr size  %llx\n", ddr_size);
-		env_set_hex("board_ddr_size", ddr_size);
-	}
-	return ddr_size;
-}
-#endif
-
-int checkhw(char *name)
-{
-#ifdef CONFIG_MULTI_DTB
-	char *p_aml_dt = env_get("aml_dt");
-	cpu_id_t cpu_id;
-
-	printf("%s...aml_dt:%s\n", __func__, p_aml_dt);
-	if (!p_aml_dt) {
-		char loc_name[64] = {0};
-		phys_size_t ddr_size = get_ddr_memsize();
-		cpu_id = get_cpu_id();
-
-		switch (ddr_size) {
-		case CONFIG_T7_4G_SIZE:
-			if (cpu_id.chip_rev == 0xA || cpu_id.chip_rev == 0xb) {
-				printf("Invalid chip rev 0x%X\n", cpu_id.chip_rev);
-			} else if (cpu_id.chip_rev == 0xC) {
-				#ifdef CONFIG_HDMITX_ONLY
-				strcpy(loc_name, "a311d2_bananapi_cm5-4g-hdmitx-only\0");
-				#else
-				strcpy(loc_name, "a311d2_bananapi_cm5-4g\0");
-				#endif
-			}
-			break;
-		case CONFIG_T7_8G_SIZE:
-			if (cpu_id.chip_rev == 0xA || cpu_id.chip_rev == 0xb) {
-				printf("Invalid chip rev 0x%X\n", cpu_id.chip_rev);
-			} else if (cpu_id.chip_rev == 0xC) {
-				strcpy(loc_name, "a311d2_bananapi_cm5-8g\0");
-			}
-			break;
-		default:
-			printf("DDR size: 0x%llx, multi-dt doesn't support, ", ddr_size);
-			printf("set defalult a311d2_bananapi_cm5-4g\n");
-			if (cpu_id.chip_rev == 0xA || cpu_id.chip_rev == 0xb) {
-				printf("Invalid chip rev 0x%X\n", cpu_id.chip_rev);
-			} else if (cpu_id.chip_rev == 0xC) {
-				strcpy(loc_name, "a311d2_bananapi_cm5-4g\0");
-			}
-			break;
-		}
-		printf("init aml_dt to %s\n", loc_name);
-		strcpy(name, loc_name);
-		env_set("aml_dt", loc_name);
-	} else {
-		strcpy(name, env_get("aml_dt"));
-	}
-#else
-	env_set("aml_dt", "a311d2_bananapi_cm5-4g\0");
-#endif
-	return 0;
-}
-
-const char * const _env_args_reserve_[] = {
-	"lock",
-	"upgrade_step",
-	"bootloader_version",
-
-	NULL//Keep NULL be last to tell END
-};
-
-int __attribute__((weak)) mmc_initialize(bd_t *bis) { return 0; }
-
-int __attribute__((weak)) do_bootm(cmd_tbl_t *cmdtp, int flag, int argc,
-							char * const argv[]) { return 0; }
-
-void __attribute__((weak)) set_working_fdt_addr(ulong addr) {}
-
-int __attribute__((weak)) ofnode_read_u32_default(ofnode node,
-							const char *propname, u32 def) {return 0; }
-
-void __attribute__((weak)) md5_wd(unsigned char *input, int len,
-								  unsigned char output[16],
-								  unsigned int chunk_sz) {}
