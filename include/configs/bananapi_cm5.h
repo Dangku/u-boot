@@ -61,7 +61,7 @@
 
 /* load dtb from boot for uboot */
 #define CONFIG_DTB_LOAD  \
-	    "if test ${boot_source} = emmc; then "\
+        "if test ${boot_source} = emmc; then "\
             "echo Load dtb/${fdtfile} from eMMC (1:1) ...;" \
             "load mmc 1:1 ${dtb_mem_addr} dtb/${fdtfile};" \
         "else if test ${boot_source} = sd; then "\
@@ -99,6 +99,7 @@
         "fdtfile=amlogic/" CONFIG_DEFAULT_DEVICE_TREE ".dtb\0" \
 		BOOTENV
 
+/*"hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;hdmitx edid;dovi process;" \*/
 #define CONFIG_EXTRA_HDMI_ENV_SETTINGS \
 	"panel_type=vbyone_0\0" \
 	"panel1_type=mipi_0\0" \
@@ -109,7 +110,7 @@
 	"outputmode2=1080p60hz\0" \
 	"cvbsmode=576cvbs\0" \
 	"storeargs_hdmitx="\
-		"setenv bootargs ${bootargs} powermode=${powermode} "\
+		"setenv bootargs ${bootargs} "\
 		"lcd_ctrl=${lcd_ctrl} lcd_debug=${lcd_debug} "\
 		"outputmode=${outputmode} hdmitx=${cecconfig},${colorattribute} "\
 		"vout2=${outputmode2},enable panel1_type=${panel1_type} "\
@@ -117,9 +118,10 @@
 		"hdr_policy=${hdr_policy} hdr_priority=${hdr_priority};"\
 		"\0"\
 	"init_display_hdmitx="\
-		"hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;dovi process;"\
-		"setenv outputmode2 ${hdmimode};"\
-		"osd dual_logo;"\
+	    "hdmitx edid;dovi process;" \
+		"setenv outputmode2 ${hdmimode};" \
+		"osd dual_logo;" \
+		"dovi set;dovi pkg;vpp hdrpkt;" \
 		"\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
@@ -172,8 +174,8 @@
 		"disable_ir=0\0" \
 	CONFIG_EXTRA_HDMI_ENV_SETTINGS \
         "initargs="\
-            "rw rootfstype=ext4" CONFIG_KNL_LOG_LEVEL "console=tty1 console=ttyS0,921600 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.mode=force fsck.repair=yes net.ifnames=0"\
-			"board=${board} scsi_mod.scan=async xhci_hcd.quirks=0x800000 loglevel=8"\
+            "rootfstype=ext4 rw loglevel=8 console=tty1 console=ttyS0,921600 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.mode=force fsck.repair=yes net.ifnames=0 "\
+            "board=${board} boot_source=${boot_source} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
             "\0"\
         "storeargs_base=" \
 		    "get_bootloaderversion;" \
@@ -186,7 +188,7 @@
 		    "frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} "\
 		    "cvbsmode=${cvbsmode} "\
 		    "osd_reverse=${osd_reverse} video_reverse=${video_reverse} "\
-		    "disable_ir=${disable_ir};"\
+		    "disable_ir=${disable_ir}; "\
 		    "\0"\
 		"storeargs=" \
 			"run storeargs_base;" \
@@ -197,10 +199,13 @@
             "echo reboot_mode : ${reboot_mode};"\
             "\0" \
 		"load_bmp_logo="\
-            "if load mmc 0:1 ${loadaddr} /boot-logo.bmp || load mmc 1:1 ${loadaddr} /boot-logo.bmp; then "\
-                "bmp display ${loadaddr};"\
-                "bmp scale;"\
-            "fi;"\
+            "if test ${boot_source} = emmc; then "\
+                "load mmc 1:1 ${loadaddr} /boot-logo.bmp;" \
+            "else if test ${boot_source} = sd; then "\
+                "load mmc 0:1 ${loadaddr} /boot-logo.bmp;" \
+            "fi;fi;" \
+            "bmp display ${loadaddr};" \
+            "bmp scale;" \
 			"\0"\
 		"init_display="\
 			"run init_display_hdmitx;"\
@@ -461,3 +466,8 @@
 //#define CONFIG_AML_KASLR_SEED
 
 #endif
+
+/* increase for bootargs */
+#undef CONFIG_SYS_CBSIZE
+#define CONFIG_SYS_CBSIZE 4096
+
