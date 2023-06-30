@@ -101,6 +101,7 @@
 
 /*"hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;hdmitx edid;dovi process;" \*/
 #define CONFIG_EXTRA_HDMI_ENV_SETTINGS \
+	"mipi_lcd_exist=0\0" \
 	"panel_type=vbyone_0\0" \
 	"panel1_type=mipi_0\0" \
 	"panel2_type=lvds_1\0" \
@@ -110,10 +111,15 @@
 	"outputmode2=1080p60hz\0" \
 	"cvbsmode=576cvbs\0" \
 	"storeargs_hdmitx="\
+		"if test ${mipi_lcd_exist} != 1; then "\
+			"setenv vout2_args ;"\
+		"else "\
+			"setenv vout2_args vout2=${outputmode2},enable;"\
+		"fi;"\
 		"setenv bootargs ${bootargs} "\
 		"lcd_ctrl=${lcd_ctrl} lcd_debug=${lcd_debug} "\
 		"outputmode=${outputmode} hdmitx=${cecconfig},${colorattribute} "\
-		"vout2=${outputmode2},enable panel1_type=${panel1_type} "\
+		"${vout2_args} panel1_type=${panel1_type} "\
 		"lcd1_ctrl=${lcd1_ctrl} panel2_type=${panel2_type} lcd2_ctrl=${lcd2_ctrl} "\
 		"hdr_policy=${hdr_policy} hdr_priority=${hdr_priority};"\
 		"\0"\
