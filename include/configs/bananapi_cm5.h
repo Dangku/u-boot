@@ -101,28 +101,28 @@
 
 /*"hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;hdmitx edid;dovi process;" \*/
 #define CONFIG_EXTRA_HDMI_ENV_SETTINGS \
-	"mipi_lcd_exist=0\0" \
-	"panel_type=vbyone_0\0" \
-	"panel1_type=mipi_0\0" \
-	"panel2_type=lvds_1\0" \
-	"lcd1_ctrl=0x00000000\0" \
-	"lcd2_ctrl=0x00000000\0" \
-	"outputmode=panel1\0" \
-	"outputmode2=1080p60hz\0" \
-	"cvbsmode=576cvbs\0" \
-	"storeargs_hdmitx="\
-		"if test ${mipi_lcd_exist} != 1; then "\
-			"setenv vout2_args ;"\
-		"else "\
-			"setenv vout2_args vout2=${outputmode2},enable;"\
-		"fi;"\
-		"setenv bootargs ${bootargs} "\
-		"lcd_ctrl=${lcd_ctrl} lcd_debug=${lcd_debug} "\
-		"outputmode=${outputmode} hdmitx=${cecconfig},${colorattribute} "\
-		"${vout2_args} panel1_type=${panel1_type} "\
-		"lcd1_ctrl=${lcd1_ctrl} panel2_type=${panel2_type} lcd2_ctrl=${lcd2_ctrl} "\
-		"hdr_policy=${hdr_policy} hdr_priority=${hdr_priority};"\
-		"\0"\
+        "mipi_lcd_exist=0\0" \
+        "panel_type=vbyone_0\0" \
+        "panel1_type=mipi_0\0" \
+        "panel2_type=lvds_1\0" \
+        "lcd1_ctrl=0x00000000\0" \
+        "lcd2_ctrl=0x00000000\0" \
+        "outputmode=panel1\0" \
+        "outputmode2=1080p60hz\0" \
+        "cvbsmode=576cvbs\0" \
+        "storeargs_hdmitx="\
+            "if test ${mipi_lcd_exist} != 1; then "\
+                "setenv vout2_args ;"\
+            "else "\
+                "setenv vout2_args vout2=${outputmode2},enable;"\
+            "fi;"\
+            "setenv bootargs ${bootargs} "\
+            "lcd_ctrl=${lcd_ctrl} lcd_debug=${lcd_debug} "\
+            "outputmode=${outputmode} hdmitx=${cecconfig},${colorattribute} "\
+            "${vout2_args} panel1_type=${panel1_type} "\
+            "lcd1_ctrl=${lcd1_ctrl} panel2_type=${panel2_type} lcd2_ctrl=${lcd2_ctrl} "\
+            "hdr_policy=${hdr_policy} hdr_priority=${hdr_priority};"\
+            "\0"\
 	"init_display_hdmitx="\
 	    "hdmitx edid;dovi process;" \
 		"setenv outputmode2 ${hdmimode};" \
@@ -135,30 +135,30 @@
         "silent=1\0" \
         "loadaddr=0x00020000\0" \
         "loadaddr_kernel=0x01080000\0" \
-		"dv_fw_addr=0xa00000\0" \
+        "dv_fw_addr=0xa00000\0" \
         "otg_device=1\0" \
         "lcd_ctrl=0x00000000\0" \
         "lcd_debug=0x00000000\0" \
         "hdmimode=1080p60hz\0" \
         "cvbsmode=dummy_l\0" \
-		"colorattribute=444,8bit\0"\
-		"vout_init=enable\0" \
+        "colorattribute=444,8bit\0"\
+        "vout_init=enable\0" \
         "display_width=1920\0" \
         "display_height=1080\0" \
-		"hdmichecksum=0x00000000\0" \
+        "hdmichecksum=0x00000000\0" \
         "dolby_status=0\0" \
         "dolby_vision_on=0\0" \
         "dv_fw_dir_odm_ext=/odm_ext/firmware/dovi_fw.bin\0" \
         "dv_fw_dir_vendor=/vendor/firmware/dovi_fw.bin\0" \
         "dv_fw_dir=/oem/firmware/dovi_fw.bin\0" \
-		"dv_fw_dir=/reserved/firmware/dovi_fw.bin\0" \
+        "dv_fw_dir=/reserved/firmware/dovi_fw.bin\0" \
         "display_bpp=24\0" \
         "display_color_index=24\0" \
         "display_layer=osd0\0" \
         "display_color_fg=0xffff\0" \
         "display_color_bg=0\0" \
         "dtb_mem_addr=0x01000000\0" \
-		"common_dtb_load=" CONFIG_DTB_LOAD "\0"\
+        "common_dtb_load=" CONFIG_DTB_LOAD "\0"\
         "fb_addr=0x00300000\0" \
         "fb_width=1920\0" \
         "fb_height=1080\0" \
@@ -177,34 +177,34 @@
         "cec_fun=0x2F\0" \
         "logic_addr=0x0\0" \
         "cec_ac_wakeup=1\0" \
-		"disable_ir=0\0" \
+        "disable_ir=0\0" \
 	CONFIG_EXTRA_HDMI_ENV_SETTINGS \
         "initargs="\
             "rootfstype=ext4 rw loglevel=8 console=tty1 console=ttyS0,921600 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.mode=force fsck.repair=yes net.ifnames=0 "\
             "board=${board} boot_source=${boot_source} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
             "\0"\
         "storeargs_base=" \
-		    "get_bootloaderversion;" \
-		    "setenv bootargs ${initargs} otg_device=${otg_device} "\
-		    "logo=${display_layer},loaded,${fb_addr} "\
-		    "vout=${outputmode},${vout_init} panel_type=${panel_type} "\
-		    "hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} "\
-		    "hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} "\
-		    "hdr_policy=${hdr_policy} hdr_priority=${hdr_priority} "\
-		    "frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} "\
-		    "cvbsmode=${cvbsmode} "\
-		    "osd_reverse=${osd_reverse} video_reverse=${video_reverse} "\
-		    "disable_ir=${disable_ir}; "\
-		    "\0"\
-		"storeargs=" \
-			"run storeargs_base;" \
-			"run storeargs_hdmitx;" \
+            "get_bootloaderversion;" \
+            "setenv bootargs ${initargs} otg_device=${otg_device} "\
+            "logo=${display_layer},loaded,${fb_addr} "\
+            "vout=${outputmode},${vout_init} panel_type=${panel_type} "\
+            "hdmitx=${cecconfig},${colorattribute} hdmimode=${hdmimode} "\
+            "hdmichecksum=${hdmichecksum} dolby_vision_on=${dolby_vision_on} "\
+            "hdr_policy=${hdr_policy} hdr_priority=${hdr_priority} "\
+            "frac_rate_policy=${frac_rate_policy} hdmi_read_edid=${hdmi_read_edid} "\
+            "cvbsmode=${cvbsmode} "\
+            "osd_reverse=${osd_reverse} video_reverse=${video_reverse} "\
+            "disable_ir=${disable_ir}; "\
+            "\0"\
+        "storeargs=" \
+            "run storeargs_base;" \
+            "run storeargs_hdmitx;" \
             "\0"\
         "switch_bootmode="\
             "get_rebootmode;"\
             "echo reboot_mode : ${reboot_mode};"\
             "\0" \
-		"load_bmp_logo="\
+        "load_bmp_logo="\
             "if test ${boot_source} = emmc; then "\
                 "load mmc 1:1 ${loadaddr} /boot-logo.bmp;" \
             "else if test ${boot_source} = sd; then "\
@@ -212,10 +212,10 @@
             "fi;fi;" \
             "bmp display ${loadaddr};" \
             "bmp scale;" \
-			"\0"\
-		"init_display="\
-			"run init_display_hdmitx;"\
-			"\0"\
+            "\0"\
+        "init_display="\
+            "run init_display_hdmitx;"\
+            "\0"\
 
 #define CONFIG_PREBOOT  \
             "run init_display;"\
