@@ -205,10 +205,7 @@
             "echo reboot_mode : ${reboot_mode};"\
             "\0" \
         "load_bmp_logo="\
-            "if test ${boot_source} = emmc; then "\
-                "load mmc 1:1 ${loadaddr} /boot-logo.bmp;" \
-            "else if test ${boot_source} = sd; then "\
-                "load mmc 0:1 ${loadaddr} /boot-logo.bmp;" \
+                "load ${devtype} ${devno}:1 ${loadaddr} /boot-logo.bmp;" \
             "fi;fi;" \
             "bmp display ${loadaddr};" \
             "bmp scale;" \
@@ -216,36 +213,50 @@
         "init_display="\
             "run init_display_hdmitx;"\
             "\0"\
+        "init_rootdev="\
+            "if test ${boot_source} = emmc; then "\
+                "echo Boot device is eMMC (1);" \
+                "setenv devtype mmc;" \
+                "setenv devno 1;" \
+                "setenv rootfsdev /dev/mmcblk0p2;" \
+            "else if test ${boot_source} = sd; then "\
+                "echo Boot device is SD (0);" \
+                "setenv devtype mmc;" \
+                "setenv devno 0;" \
+                "setenv rootfsdev /dev/mmcblk1p2;" \
+        "fi;fi;"\
+        "\0"\
 
 #define CONFIG_PREBOOT  \
-            "run init_display;"\
-            "run storeargs;"\
-            "run switch_bootmode;"
+        "run init_rootdev;"\
+        "run init_display;"\
+        "run storeargs;"\
+        "run switch_bootmode;"
 
 #ifndef CONFIG_HDMITX_ONLY
 /* dual logo, normal boot */
 #define CONFIG_DUAL_LOGO \
-    "setenv outputmode2 ${hdmimode};"\
-    "setenv display_layer viu2_osd0;vout2 prepare ${outputmode2};"\
-    "osd open;osd clear;run load_bmp_logo;vout2 output ${outputmode2};bmp scale;"\
-    "setenv display_layer osd0;osd open;osd clear;"\
-	"run load_bmp_logo;bmp scale;vout output ${outputmode};"\
-    "\0"\
+        "setenv outputmode2 ${hdmimode};"\
+        "setenv display_layer viu2_osd0;vout2 prepare ${outputmode2};"\
+        "osd open;osd clear;run load_bmp_logo;vout2 output ${outputmode2};bmp scale;"\
+        "setenv display_layer osd0;osd open;osd clear;"\
+        "run load_bmp_logo;bmp scale;vout output ${outputmode};"\
+        "\0"\
 
 /* dual logo, factory_reset boot, recovery always displays on panel */
 #define CONFIG_RECOVERY_DUAL_LOGO \
-    "setenv outputmode2 ${hdmimode};"\
-    "setenv display_layer viu2_osd0;vout2 prepare ${outputmode2};"\
-    "osd open;osd clear;run load_bmp_logo;vout2 output ${outputmode2};bmp scale;"\
-    "setenv display_layer osd0;osd open;osd clear;"\
-	"run load_bmp_logo;bmp scale;vout output ${outputmode};"\
-    "\0"\
+        "setenv outputmode2 ${hdmimode};"\
+        "setenv display_layer viu2_osd0;vout2 prepare ${outputmode2};"\
+        "osd open;osd clear;run load_bmp_logo;vout2 output ${outputmode2};bmp scale;"\
+        "setenv display_layer osd0;osd open;osd clear;"\
+        "run load_bmp_logo;bmp scale;vout output ${outputmode};"\
+        "\0"\
 
 /* single logo */
 #define CONFIG_SINGLE_LOGO \
-    "setenv display_layer osd0;osd open;osd clear;"\
-	"run load_bmp_logo;bmp scale;vout output ${outputmode};"\
-    "\0"
+        "setenv display_layer osd0;osd open;osd clear;"\
+        "run load_bmp_logo;bmp scale;vout output ${outputmode};"\
+        "\0"
 #endif
 
 /* #define CONFIG_ENV_IS_NOWHERE  1 */
