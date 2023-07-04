@@ -35,7 +35,7 @@ int has_boot_slot = 0;
 int has_system_slot = 0;
 bool dynamic_partition = false;
 bool vendor_boot_partition = false;
-bool is_partition_checked = false;
+bool is_partition_checked = true;
 #if CONFIG_IS_ENABLED(EFI_PARTITION)
 bool gpt_partition;
 #endif

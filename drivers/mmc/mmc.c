@@ -2943,7 +2943,11 @@ int mmc_pattern_check(struct mmc *mmc, struct aml_pattern *table)
 
 int mmc_init(struct mmc *mmc)
 {
+#ifdef CONFIG_AML_PARTITION
 	int err = 0, i;
+#else
+	int err=0;
+#endif
 	__maybe_unused ulong start;
 #if CONFIG_IS_ENABLED(DM_MMC)
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(mmc->dev);
@@ -2963,6 +2967,8 @@ int mmc_init(struct mmc *mmc)
 		err = mmc_complete_init(mmc);
 	if (err)
 		pr_info("%s: %d, time %lu\n", __func__, err, get_timer(start));
+
+#ifdef CONFIG_AML_PARTITION
 	info_disprotect |= DISPROTECT_KEY;
 	if (IS_MMC(mmc)) {
 		if (!is_partition_checked) {
@@ -2975,6 +2981,7 @@ int mmc_init(struct mmc *mmc)
 		}
 	}
 	info_disprotect &= ~DISPROTECT_KEY;
+#endif
 
 	return err;
 }
