@@ -101,7 +101,7 @@
 
 /*"hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;hdmitx edid;dovi process;" \*/
 #define CONFIG_EXTRA_HDMI_ENV_SETTINGS \
-        "mipi_lcd_exist=0\0" \
+        "lcd_exist=0\0" \
         "panel_type=vbyone_0\0" \
         "panel1_type=mipi_0\0" \
         "panel2_type=lvds_1\0" \
@@ -111,7 +111,7 @@
         "outputmode2=1080p60hz\0" \
         "cvbsmode=576cvbs\0" \
         "storeargs_hdmitx="\
-            "if test ${mipi_lcd_exist} != 1; then "\
+            "if test ${lcd_exist} == 0; then "\
                 "setenv vout2_args ;"\
             "else "\
                 "setenv vout2_args vout2=${outputmode2},enable;"\
@@ -136,7 +136,7 @@
         "loadaddr=0x00020000\0" \
         "loadaddr_kernel=0x01080000\0" \
         "dv_fw_addr=0xa00000\0" \
-        "otg_device=1\0" \
+        "otg_device=0\0" \
         "lcd_ctrl=0x00000000\0" \
         "lcd_debug=0x00000000\0" \
         "hdmimode=1080p60hz\0" \
@@ -226,9 +226,24 @@
                 "setenv rootfsdev /dev/mmcblk1p2;" \
         "fi;fi;"\
         "\0"\
+        "check_panel="\
+            "fdt addr ${dtb_mem_addr}; "\
+            "if test ${lcd_exist} = 1; then "\
+                "outputmode=panel1; setenv outputmode ${outputmode};"\
+                "setenv lcd_fb_width 800;setenv lcd_fb_height 1280;"\
+                "setenv lcd_display_width 800;setenv lcd_display_height 1280;"\
+            "else if test ${lcd_exist} = 2; then "\
+                "outputmode=panel1; setenv outputmode ${outputmode};"\
+                "setenv lcd_fb_width 1200;setenv lcd_fb_height 1920;"\
+                "setenv lcd_display_width 1200;setenv lcd_display_height 1920;"\
+            "else "\
+                "echo dsi panel disconnected; outputmode=panel1; setenv outputmode ${outputmode};"\
+            "fi;fi;"\
+        "\0"\
 
 #define CONFIG_PREBOOT  \
         "run init_rootdev;"\
+        "run check_panel;"\
         "run init_display;"\
         "run storeargs;"\
         "run switch_bootmode;"
@@ -237,10 +252,19 @@
 /* dual logo, normal boot */
 #define CONFIG_DUAL_LOGO \
         "setenv outputmode2 ${hdmimode};"\
+        "setenv fb_width 1920;setenv fb_height 1080;"\
         "setenv display_layer viu2_osd0;vout2 prepare ${outputmode2};"\
         "osd open;osd clear;run load_bmp_logo;vout2 output ${outputmode2};bmp scale;"\
-        "setenv display_layer osd0;osd open;osd clear;"\
-        "run load_bmp_logo;bmp scale;vout output ${outputmode};"\
+	    "if test ${lcd_exist} -ne 0; then "\
+            "setenv fb_width ${lcd_fb_width};setenv fb_height ${lcd_fb_height};"\
+            "setenv display_width ${lcd_display_width};setenv display_height ${lcd_display_height};"\
+            "setenv display_layer osd0;osd open;osd clear;run load_bmp_logo;bmp scale;vout output ${outputmode};"\
+        "else "\
+            "setenv fb_width 1920;setenv fb_height 1080;"\
+            "setenv display_width 1920;setenv display_height 1080;"\
+            "setenv display_layer osd0;osd open;osd clear;"\
+            "run load_bmp_logo;bmp scale;vout output ${outputmode};"\
+        "fi;"\
         "\0"\
 
 /* dual logo, factory_reset boot, recovery always displays on panel */

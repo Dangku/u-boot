@@ -203,6 +203,37 @@ static void hdmitx_set_hdmi_5v(void)
 }
 #endif
 
+#ifdef CONFIG_AML_LCD
+#define BANANAPI_CM5_HDMI     0       /*hdmi only*/
+#define BANANAPI_CM5_LCD1     1       /*800x1280 dsi*/
+#define BANANAPI_CM5_LCD2     2       /*1200x1920 dsi*/
+
+void lcd_detect(void)
+{
+	unsigned int val;
+
+    if (0) {
+        printf("800x1280 dsi connected\n");
+        val = BANANAPI_CM5_LCD1;
+		env_set("panel1_type", "mipi_0");
+    }
+
+    if (0) {
+        printf("1200x1920 dsi connected\n");
+        val = BANANAPI_CM5_LCD2;
+		env_set("panel1_type", "mipi_1");
+    }
+
+    if (1) {
+        printf("lcd_detect: lcd disconnected\n");
+        val = BANANAPI_CM5_HDMI;
+    }
+
+	env_set_hex("lcd_exist", val);
+}
+
+#endif
+
 void board_init_mem(void)
 {
 	/* config bootm low size, make sure whole dram/psram space can be used */
@@ -262,6 +293,7 @@ int board_late_init(void)
 	vout_probe();
 #endif
 #ifdef CONFIG_AML_LCD
+	lcd_detect();
 	lcd_probe();
 	/* cm4io backlight on because pin 41 (GPIOY_5) not support pwm */
 	run_command("gpio set GPIOY_5", 0);
