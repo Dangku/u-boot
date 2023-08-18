@@ -205,8 +205,7 @@
             "echo reboot_mode : ${reboot_mode};"\
             "\0" \
         "load_bmp_logo="\
-                "load ${devtype} ${devno}:1 ${loadaddr} /boot-logo.bmp;" \
-            "fi;fi;" \
+            "load ${devtype} ${devno}:1 ${loadaddr} /boot-logo.bmp;" \
             "bmp display ${loadaddr};" \
             "bmp scale;" \
             "\0"\
