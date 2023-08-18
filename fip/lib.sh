@@ -217,7 +217,7 @@ function get_blx_bin() {
 					if [ "y" == "${CONFIG_NEED_BL32}" ]; then
 						cp ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/${BLX_BIN_SUB_FOLDER}/${BLX_BIN_NAME[index]} ${FIP_BUILD_FOLDER} -f
 						if [ "y" == "${CONFIG_FIP_IMG_SUPPORT}" ]; then
-							cp ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/${BLX_IMG_NAME[index]} ${FIP_BUILD_FOLDER} 2>/dev/null
+							cp ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/${BLX_IMG_NAME[index]} ${FIP_BUILD_FOLDER} 2>/dev/null || true
 						fi
 					fi
 				else
@@ -249,7 +249,7 @@ function get_blx_bin() {
 					else
 						cp ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/${BLX_BIN_SUB_FOLDER}/${BLX_BIN_NAME[index]} ${FIP_BUILD_FOLDER} -f
 						if [ "y" == "${CONFIG_FIP_IMG_SUPPORT}" ]; then
-							cp ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/${BLX_IMG_NAME[index]} ${FIP_BUILD_FOLDER} 2>/dev/null
+							cp ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/${BLX_IMG_NAME[index]} ${FIP_BUILD_FOLDER} 2>/dev/null || true
 						fi
 					fi
 					if [ -e ${BLX_BIN_FOLDER[index]}/${CUR_SOC}/bl2.v3.bin ]; then

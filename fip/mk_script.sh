@@ -17,8 +17,6 @@ source fip/build_bl33.sh
 source fip/build_bl40.sh
 source fip/check_coverity.sh
 
-#set -x
-
 function parse_bl33_global_config() {
 	local oldifs="$IFS"
 	IFS=$'\n'
@@ -86,7 +84,7 @@ function init_variable_late() {
 				echo "$LINE" >> "${CONFIG_FILE_TMP}"
 			fi
 		done < ${CONFIG_FILE}
-		source "${CONFIG_FILE_TMP}" &> /dev/null
+		source "${CONFIG_FILE_TMP}" &> /dev/null || true
 		rm ${CONFIG_FILE_TMP}
 	fi
 	if [ "y" == "${CONFIG_SUPPORT_CUSTOMER_BOARD}" ]; then
@@ -120,11 +118,11 @@ function build_blx_src() {
 	elif [ $name == ${BLX_NAME_GLB[2]} ]; then
 		# bl31
 		# some soc use v1.3
-		check_bl31_ver $soc
-		if [ $? == 1 ]; then
+		ver=`check_bl31_ver $soc`
+		if [ $ver == 1 ]; then
 			echo "check bl31 ver: use v1.3"
 			build_bl31_v1_3 $src_folder $bin_folder $soc
-		elif [ $? == 0 ]; then
+		elif [ $ver == 0 ]; then
 			echo "check bl31 ver: use v1.0"
 			build_bl31 $src_folder $bin_folder $soc
 		else

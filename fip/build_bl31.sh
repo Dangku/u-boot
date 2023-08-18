@@ -120,7 +120,7 @@ function check_bl31_ver() {
 		ver=2
 	fi
 	done
-	return ${ver}
+	echo ${ver}
 }
 
 # some soc need use bl31_v1.3
@@ -132,12 +132,12 @@ function switch_bl31() {
 			bl31_index=$loop
 		fi
 	done
-	check_bl31_ver $1
-	if [ $? == 1 ]; then
+	ver=`check_bl31_ver $1`
+	if [ $ver == 1 ]; then
 		echo "check bl31 ver: use v1.3"
 		BLX_SRC_FOLDER[$bl31_index]=${BL31_V1_3_SRC_FOLDER}
 		BLX_BIN_FOLDER[$bl31_index]=${BL31_V1_3_BIN_FOLDER}
-	elif [ $? == 0 ]; then
+	elif [ $ver == 0 ]; then
 		echo "check bl31 ver: use v1.0"
 		BLX_SRC_FOLDER[$bl31_index]=${BL31_V1_0_SRC_FOLDER}
 		BLX_BIN_FOLDER[$bl31_index]=${BL31_V1_0_BIN_FOLDER}
