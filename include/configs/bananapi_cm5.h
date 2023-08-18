@@ -107,7 +107,7 @@
         "panel2_type=lvds_1\0" \
         "lcd1_ctrl=0x00000000\0" \
         "lcd2_ctrl=0x00000000\0" \
-        "outputmode=panel1\0" \
+        "outputmode=panel\0" \
         "outputmode2=1080p60hz\0" \
         "cvbsmode=576cvbs\0" \
         "storeargs_hdmitx="\
@@ -229,15 +229,15 @@
         "check_panel="\
             "fdt addr ${dtb_mem_addr}; "\
             "if test ${lcd_exist} = 1; then "\
-                "outputmode=panel1; setenv outputmode ${outputmode};"\
+                "outputmode=panel; setenv outputmode ${outputmode};"\
                 "setenv lcd_fb_width 800;setenv lcd_fb_height 1280;"\
                 "setenv lcd_display_width 800;setenv lcd_display_height 1280;"\
             "else if test ${lcd_exist} = 2; then "\
-                "outputmode=panel1; setenv outputmode ${outputmode};"\
+                "outputmode=panel; setenv outputmode ${outputmode};"\
                 "setenv lcd_fb_width 1200;setenv lcd_fb_height 1920;"\
                 "setenv lcd_display_width 1200;setenv lcd_display_height 1920;"\
             "else "\
-                "echo dsi panel disconnected; outputmode=panel1; setenv outputmode ${outputmode};"\
+                "echo dsi panel disconnected; outputmode=panel; setenv outputmode ${outputmode};"\
             "fi;fi;"\
         "\0"\
 

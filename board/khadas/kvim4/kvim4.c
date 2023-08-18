@@ -139,8 +139,8 @@ void board_lcd_detect(void)
 		}
 	}
 
-	env_set_ulong("mipi_lcd_exist", value);
-	printf("mipi_lcd_exist : %d\n", value);
+	env_set_ulong("lcd_exist", value);
+	printf("lcd_exist : %d\n", value);
 }
 #endif /* CONFIG_AML_LCD */
 

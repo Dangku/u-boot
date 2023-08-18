@@ -118,7 +118,7 @@
 	"outputmode2=1080p60hz\0" \
 	"cvbsmode=576cvbs\0" \
 	"storeargs_hdmitx="\
-		"if test ${mipi_lcd_exist} != 1; then "\
+		"if test ${lcd_exist} != 1; then "\
 			"setenv vout2_args ;"\
 		"else "\
 			"setenv vout2_args vout2=${outputmode2},enable;"\
@@ -201,7 +201,7 @@
         "cec_ac_wakeup=1\0" \
 	    CONFIG_EXTRA_HDMI_ENV_SETTINGS \
         "initargs="\
-            "rootflags=data=writeback rw rootfstype=ext4" CONFIG_KNL_LOG_LEVEL "console=tty1 console=ttyS0,921600 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.repair=yes net.ifnames=0 "\
+            "rootflags=data=writeback rw rootfstype=ext4" CONFIG_KNL_LOG_LEVEL "console=ttyS0,921600 console=tty0 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.repair=yes net.ifnames=0 "\
             "khadas_board=VIM4 boot_source=${boot_source} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
             "\0"\
         "upgrade_check="\

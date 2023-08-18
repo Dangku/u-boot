@@ -1047,7 +1047,7 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
 #endif
 			if (!strcmp(env_get("lcd_exist"), "0")) {
 				printf("LCD not exist, disable lcd node.\n");
-				run_command("fdt addr ${fdt_addr_r}; fdt resize 65536; fdt set /lcd1 status disabled;", 0);
+				run_command("fdt addr ${fdt_addr_r}; fdt resize 65536; fdt set /lcd status disabled;", 0);
 			} else if (!strcmp(env_get("lcd_exist"), "1")) {
 				// Set fbdev size to RXT101 MIPI LCD resolution 800x1280
 				run_command("fdt addr ${fdt_addr_r}; fdt resize 65536; fdt set /drm-subsystem fbdev_sizes <800 1280 800 2560 32>;", 0);
