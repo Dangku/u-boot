@@ -478,8 +478,10 @@ int designware_initialize(ulong base_addr, u32 interface)
 	if (bestwindow >= 0) {
 		sprintf(buf, "%d", bestwindow);
 		setenv("eth_bestwindow", buf);
-	} else {
-		setenv("eth_bestwindow", "0");
+		saveenv();
+#ifdef CONFIG_ETHADDR
+		memset (dev->enetaddr, 0, 6);
+#endif
 	}
 #endif
 	return ret;
