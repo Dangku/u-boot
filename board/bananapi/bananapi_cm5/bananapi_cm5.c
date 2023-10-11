@@ -155,7 +155,10 @@ static void set_boot_source(void)
 
 static void set_fdtfile(void)
 {
-	env_set("fdtfile", "amlogic/" CONFIG_DEFAULT_DEVICE_TREE".dtb");
+	//todo, detect io board and set correct dtb file here
+
+	env_set("fdtfile", "amlogic/bananapi_cm5io.dtb");
+	//env_set("fdtfile", "amlogic/bananapi_rpicm4io.dtb");
 }
 
 static void load_fdtfile(void)
