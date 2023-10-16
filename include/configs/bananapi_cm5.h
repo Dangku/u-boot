@@ -181,7 +181,7 @@
 	CONFIG_EXTRA_HDMI_ENV_SETTINGS \
         "initargs="\
             "rootfstype=ext4 rw loglevel=8 console=tty1 console=ttyS0,921600 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.mode=force fsck.repair=yes net.ifnames=0 "\
-            "board=${board} boot_source=${boot_source} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
+            "board=${board} boot_source=${boot_source} mac=${ethaddr} serial=${serial} systemd.machine_id=${serial} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
             "\0"\
         "storeargs_base=" \
             "get_bootloaderversion;" \

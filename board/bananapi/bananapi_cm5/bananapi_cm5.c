@@ -40,6 +40,8 @@
 #include <amlogic/storage.h>
 #include <asm/arch-meson/boot.h>
 
+#include <bananapi-common.h>
+
 DECLARE_GLOBAL_DATA_PTR;
 
 void sys_led_init(void)
@@ -153,47 +155,10 @@ static void set_boot_source(void)
 	env_set("boot_source", source);
 }
 
-static void set_fdtfile(void)
-{
-	//todo, detect io board and set correct dtb file here
-
-	env_set("fdtfile", "amlogic/bananapi_cm5io.dtb");
-	//env_set("fdtfile", "amlogic/bananapi_rpicm4io.dtb");
-}
-
 static void load_fdtfile(void)
 {
 	if (run_command("run common_dtb_load", 0) ) {
 		printf("Fail in load dtb with cmd[%s]\n", env_get("common_dtb_load"));
-	}
-}
-
-static void set_chipid(void)
-{
-	unsigned char chipid[16];
-
-	memset(chipid, 0, 16);
-
-	if (get_chip_id(chipid, 16) != -1) {
-		char chipid_str[32];
-		int i, j;
-		char buf_tmp[4];
-
-		memset(chipid_str, 0, 32);
-
-		char *buff = &chipid_str[0];
-
-		for (i = 0, j = 0; i < 12; ++i) {
-			sprintf(&buf_tmp[0], "%02x", chipid[15 - i]);
-			if (strcmp(buf_tmp, "00") != 0) {
-				sprintf(buff + j, "%02x", chipid[15 - i]);
-				j = j + 2;
-			}
-		}
-		env_set("cpu_id", chipid_str);
-		printf("cpu_id: %s\n", buff);
-	} else {
-		env_set("cpu_id", "1234567890");
 	}
 }
 
@@ -274,10 +239,9 @@ int board_late_init(void)
 	printf("board late init\n");
 
 	board_init_mem();
-	set_chipid();
 	set_boot_source();
-	set_fdtfile();
-    load_fdtfile();
+	board_detect();
+	load_fdtfile();
 
 #ifdef CONFIG_AML_VPU
 	vpu_probe();
@@ -301,6 +265,8 @@ int board_late_init(void)
 	/* cm4io backlight on because pin 41 (GPIOY_5) not support pwm */
 	run_command("gpio set GPIOY_5", 0);
 #endif
+
+	get_board_serial();
 
 	return 0;
 }
