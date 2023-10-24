@@ -61,13 +61,12 @@
 
 /* load dtb from boot for uboot */
 #define CONFIG_DTB_LOAD  \
-        "if test ${boot_source} = emmc; then "\
-            "echo Load dtb/${fdtfile} from eMMC (1:1) ...;" \
-            "load mmc 1:1 ${dtb_mem_addr} dtb/${fdtfile};" \
-        "else if test ${boot_source} = sd; then "\
-            "echo Load dtb/${fdtfile} from SD (0:1) ...;" \
-            "load mmc 0:1 ${dtb_mem_addr} dtb/${fdtfile};" \
-        "fi;fi;"
+        "echo Load dtb/${fdtfile} from ${devtype} (${devnum}:1) ...;" \
+        "if test -e ${devtype} ${devnum}:1  /boot/dtb/${fdtfile}; then " \
+            "load ${devtype} ${devnum}:1 ${dtb_mem_addr} /boot/dtb/${fdtfile};" \
+        "else " \
+            "load ${devtype} ${devnum}:1 ${dtb_mem_addr} /dtb/${fdtfile};" \
+        "fi;"
 
 /* args/envs */
 #define CONFIG_SYS_MAXARGS  64
@@ -97,7 +96,8 @@
         "scriptaddr=0x00010000\0" \
         "ramdisk_addr_r=0x10000000\0"\
         "fdtfile=amlogic/" CONFIG_DEFAULT_DEVICE_TREE ".dtb\0" \
-		BOOTENV
+	"boot_prefixes=/ /boot/\0" \
+	BOOTENV
 
 /*"hdmitx hpd;hdmitx get_preferred_mode;hdmitx get_parse_edid;hdmitx edid;dovi process;" \*/
 #define CONFIG_EXTRA_HDMI_ENV_SETTINGS \
@@ -158,6 +158,7 @@
         "display_color_fg=0xffff\0" \
         "display_color_bg=0\0" \
         "dtb_mem_addr=0x01000000\0" \
+        "boot_prefixes=/ /boot/\0" \
         "common_dtb_load=" CONFIG_DTB_LOAD "\0"\
         "fb_addr=0x00300000\0" \
         "fb_width=1920\0" \
@@ -205,7 +206,9 @@
             "echo reboot_mode : ${reboot_mode};"\
             "\0" \
         "load_bmp_logo="\
-            "load ${devtype} ${devno}:1 ${loadaddr} /boot-logo.bmp;" \
+	    "for prefix in ${boot_prefixes}; do " \
+                "load ${devtype} ${devnum}:1 ${loadaddr} ${prefix}boot-logo.bmp;" \
+	    "done;" \
             "bmp display ${loadaddr};" \
             "bmp scale;" \
             "\0"\
@@ -214,14 +217,8 @@
             "\0"\
         "init_rootdev="\
             "if test ${boot_source} = emmc; then "\
-                "echo Boot device is eMMC (1);" \
-                "setenv devtype mmc;" \
-                "setenv devno 1;" \
                 "setenv rootfsdev /dev/mmcblk0p2;" \
             "else if test ${boot_source} = sd; then "\
-                "echo Boot device is SD (0);" \
-                "setenv devtype mmc;" \
-                "setenv devno 0;" \
                 "setenv rootfsdev /dev/mmcblk1p2;" \
         "fi;fi;"\
         "\0"\

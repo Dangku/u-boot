@@ -121,6 +121,9 @@ const char *get_boot_source_str(unsigned int boot_id)
 	switch (boot_id) {
 	case BOOT_DEVICE_EMMC:
 		source = "emmc";
+		env_set("devtype", "mmc");
+		env_set("devnum", "1");
+		printf("Boot device is eMMC (1)\n");
 		break;
 
 	case BOOT_DEVICE_NAND:
@@ -133,6 +136,9 @@ const char *get_boot_source_str(unsigned int boot_id)
 
 	case BOOT_DEVICE_SD:
 		source = "sd";
+		env_set("devtype", "mmc");
+		env_set("devnum", "0");
+		printf("Boot device is SD (0)\n");
 		break;
 
 	case BOOT_DEVICE_USB:
