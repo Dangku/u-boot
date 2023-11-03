@@ -122,6 +122,7 @@ void str_power_on(int shutdown_flag)
 		return;
 	}
 
+#if 0
 	/***power on vcc_5v***/
 	ret = xGpioSetDir(GPIOH_1,GPIO_DIR_OUT);
 	if (ret < 0) {
@@ -134,7 +135,9 @@ void str_power_on(int shutdown_flag)
 		printf("vcc_5v set gpio val fail\n");
 		return;
 	}
-	/***power on vdd_cpu***/
+#endif
+
+	/***power on vdd_cpu_a***/
 	ret = xGpioSetDir(GPIOD_2,GPIO_DIR_OUT);
 	if (ret < 0) {
 		printf("vdd_cpu_a set gpio dir fail\n");
@@ -147,22 +150,26 @@ void str_power_on(int shutdown_flag)
 		return;
 	}
 
-	/***power on vdd_cpu***/
-	ret = xGpioSetDir(GPIO_TEST_N,GPIO_DIR_OUT);
-	if (ret < 0) {
-		printf("vdd_cpu_b set gpio dir fail\n");
-		return;
-	}
+	printf("vdd_cpu_a on\n");
 
-	ret = xGpioSetValue(GPIO_TEST_N,GPIO_LEVEL_HIGH);
-	if (ret < 0) {
-		printf("vdd_cpu_b set gpio val fail\n");
-		return;
+	/***power on vdd_cpu_b***/
+	if (get_ETHWol_flag() == 0) {
+		ret = xGpioSetDir(GPIO_TEST_N,GPIO_DIR_OUT);
+		if (ret < 0) {
+			printf("vdd_cpu_b set gpio dir fail\n");
+			return;
+		}
+
+		ret = xGpioSetValue(GPIO_TEST_N,GPIO_LEVEL_HIGH);
+		if (ret < 0) {
+			printf("vdd_cpu_b set gpio val fail\n");
+			return;
+		}
+		printf("vdd_cpu_b on\n");
 	}
 
 	/*Wait 200ms for VDDCPU stable*/
 	vTaskDelay(pdMS_TO_TICKS(200));
-	printf("vdd_cpu on\n");
 }
 
 void str_power_off(int shutdown_flag)
@@ -191,6 +198,7 @@ void str_power_off(int shutdown_flag)
 			printf("vdd_cpu_b set gpio val fail\n");
 			return;
 		}
+		printf("vdd_cpu_b off\n");
 	}
 
 	/***power off vdd_cpu***/
@@ -206,7 +214,9 @@ void str_power_off(int shutdown_flag)
 		return;
 	}
 
-	printf("vdd_cpu off\n");
+	printf("vdd_cpu_a off\n");
+
+#if 0
 	/***power off vcc_5v***/
 	ret = xGpioSetDir(GPIOH_1,GPIO_DIR_OUT);
 	if (ret < 0) {
@@ -221,6 +231,7 @@ void str_power_off(int shutdown_flag)
 	}
 
 	printf("vcc_5v off\n");
+#endif
 
 	/***set vdd_ee val***/
 	ret = vPwmMesonSetVoltage(VDDEE_VOLT,771);
