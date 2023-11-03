@@ -6,8 +6,11 @@
 #include "saradc.h"
 #include "suspend.h"
 
-/*KEY ID*/
+/*KEY GPIO*/
+//#define GPIO_KEY_ID_POWER	GPIOH_1
 #define GPIO_KEY_ID_POWER	GPIOD_3
+/*WOL GPIO*/
+#define GPIO_WOL		GPIOH_6
 
 #define ADC_KEY_ID_POWER	520
 
@@ -18,6 +21,10 @@ static void vGpioKeyCallBack(struct xReportEvent event)
 	switch (event.ulCode) {
 	case GPIO_KEY_ID_POWER:
 		buf[0] = POWER_KEY_WAKEUP;
+		STR_Wakeup_src_Queue_Send(buf);
+		break;
+	case GPIO_WOL:
+		buf[0] = WOL_WAKEUP;
 		STR_Wakeup_src_Queue_Send(buf);
 		break;
 	default:
@@ -48,7 +55,9 @@ static void vAdcKeyCallBack(struct xReportEvent event)
 
 struct xGpioKeyInfo gpioKeyInfo[] = {
 	GPIO_KEY_INFO(GPIO_KEY_ID_POWER, HIGH, EVENT_SHORT,
-			vGpioKeyCallBack, NULL)
+			vGpioKeyCallBack, NULL),
+	GPIO_KEY_INFO(GPIO_WOL, HIGH, EVENT_SHORT,
+                        vGpioKeyCallBack, NULL)
 };
 
 struct xAdcKeyInfo adcKeyInfo[] = {
