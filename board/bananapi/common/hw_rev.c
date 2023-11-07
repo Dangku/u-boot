@@ -9,6 +9,8 @@
 #include <amlogic/cpu_id.h>
 #include <amlogic/saradc.h>
 #include <asm/arch/secure_apb.h>
+#include <dm/uclass.h>
+#include <i2c.h>
 #include <bananapi-common.h>
 
 #define MAINBOARD_ADC_CHANNEL		1
@@ -87,14 +89,13 @@ int board_detect(void)
 #if defined(CONFIG_EFUSE_SN)
 static int get_efuse_serial(void)
 {
-	char buf[EFUSE_BYTES];	// sn address buffer
-	uint32_t size = CONFIG_EFUSE_SN_LEN;
+	char buf[CONFIG_EFUSE_SN_LEN+1];	// sn address buffer
 	loff_t pos = CONFIG_EFUSE_SN_POS;	// offset of the first byte for sn address
 	int ret;
 
 	memset(buf, 0, sizeof(buf));
 
-	ret = efuse_read_usr(buf, size, &pos);
+	ret = efuse_read_usr(buf, sizeof(buf), &pos);
 	if (ret < 0) {
 		memset(buf, 0, sizeof(buf));
 		printf("read serial from efuse failed\n");
@@ -102,6 +103,32 @@ static int get_efuse_serial(void)
 	}
 
 	printf("serial:%s(from efuse)\n", buf);
+	env_set("serial", buf);
+
+	return 0;
+}
+#endif
+
+#if defined(CONFIG_I2C_EEPROM_SN)
+static int eth_get_i2c_eeprom_sn(void)
+{
+	struct udevice *dev;
+	struct udevice *bus;
+	int ret;
+	char buf[CONFIG_I2C_EEPROM_SN_LEN+1];
+
+	uclass_get_device_by_seq(UCLASS_I2C, 2, &bus);
+	ret = i2c_get_chip(bus, CONFIG_I2C_EEPROM_ADDR, 1, &dev);
+	if (!ret) {
+		ret = dm_i2c_read(dev, CONFIG_I2C_EEPROM_SN_POS, (uchar *)buf, sizeof(buf));
+		if (ret) {
+			printf("Error reading the i2c eeprom: %d\n", ret);
+			memset(buf, 0, sizeof(buf));
+			return -EINVAL;
+		}
+	}
+
+	printf("serial:%s(from i2c eeprom)\n", buf);
 	env_set("serial", buf);
 
 	return 0;
@@ -137,6 +164,8 @@ void get_board_serial(void)
 {
 #if defined(CONFIG_EFUSE_SN)
 	get_efuse_serial();
+#elif defined(CONFIG_I2C_EEPROM_SN)
+	eth_get_i2c_eeprom_sn();
 #endif
 	get_chipid();
 }

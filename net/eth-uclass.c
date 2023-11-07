@@ -17,6 +17,7 @@
 #include <asm/arch/register.h>
 #endif
 #include <asm/arch/efuse.h>
+#include <i2c.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -490,6 +491,41 @@ static int eth_get_efuse_mac(struct udevice *dev)
 }
 #endif
 
+#if defined(CONFIG_I2C_EEPROM_MAC)
+static int eth_get_i2c_eeprom_mac(struct udevice *dev)
+{
+	struct udevice *bus;
+	int ret;
+	char buf[CONFIG_I2C_EEPROM_MAC_LEN];
+	struct eth_pdata *pdata = dev->platdata;
+
+	uclass_get_device_by_seq(UCLASS_I2C, 2, &bus);
+	ret = i2c_get_chip(bus, CONFIG_I2C_EEPROM_ADDR, 1, &dev);
+	if (!ret) {
+		ret = dm_i2c_read(dev, CONFIG_I2C_EEPROM_MAC_POS, (uchar *)buf, sizeof(buf));
+		if (ret) {
+			printf("Error reading the i2c eeprom: %d\n", ret);
+			memset(buf, 0, sizeof(buf));
+			return -EINVAL;
+		}
+	}
+
+	printf("MACADDR: %s(from i2c eeprom)\n", buf);
+
+	int i;
+	char s[3];
+	char *p = buf;
+	for (i = 0; i < 6; i++) {
+		s[0] = *p++;
+		s[1] = *p++;
+		s[2] = 0;
+		pdata->enetaddr[i] = simple_strtoul(s, NULL, 16);
+	}
+
+	return 0;
+}
+#endif
+
 static char env_str[32];
 static int eth_post_probe(struct udevice *dev)
 {
@@ -533,6 +569,8 @@ static int eth_post_probe(struct udevice *dev)
 
 #if defined(CONFIG_EFUSE_MAC)
 	eth_get_efuse_mac(dev);
+#elif defined(CONFIG_I2C_EEPROM_MAC)
+	eth_get_i2c_eeprom_mac(dev);
 #endif
 
 	if (is_valid_ethaddr(pdata->enetaddr)) {

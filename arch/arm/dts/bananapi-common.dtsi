@@ -123,6 +123,13 @@
 	mc_val = <0x1621>;
 };
 
+&i2c2 {
+       status= "okay";
+       pinctrl-names = "default";
+       pinctrl-0 = <&i2c2_pins2>;
+       clock-frequency = <100000>;
+};
+
 &ir {
 	status = "disabled";
 	/* pinctrl-0 = <&remote_input_ao_pins>; */

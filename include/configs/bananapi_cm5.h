@@ -433,6 +433,22 @@
  #define CONFIG_EFUSE_SN_LEN		16
 #endif
 
+//#define CONFIG_I2C_EEPROM		1
+#if defined(CONFIG_I2C_EEPROM)
+#define CONFIG_I2C_EEPROM_ADDR		0x50
+#define CONFIG_I2C_EEPROM_MAC		1
+#define CONFIG_I2C_EEPROM_SN		1
+#endif
+
+#if defined(CONFIG_I2C_EEPROM_MAC)
+#define CONFIG_I2C_EEPROM_MAC_POS	0
+#define CONFIG_I2C_EEPROM_MAC_LEN	12
+#endif
+#if defined(CONFIG_I2C_EEPROM_MAC)
+#define CONFIG_I2C_EEPROM_SN_POS	36
+#define CONFIG_I2C_EEPROM_SN_LEN	16
+#endif
+
 /* other devices */
 #define CONFIG_SHA1 1
 #define CONFIG_MD5 1
