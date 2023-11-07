@@ -5,6 +5,7 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/efuse.h>
 #include <amlogic/cpu_id.h>
 #include <amlogic/saradc.h>
 #include <asm/arch/secure_apb.h>
@@ -83,6 +84,30 @@ int board_detect(void)
 	return 0;
 }
 
+#if defined(CONFIG_EFUSE_SN)
+static int get_efuse_serial(void)
+{
+	char buf[EFUSE_BYTES];	// sn address buffer
+	uint32_t size = CONFIG_EFUSE_SN_LEN;
+	loff_t pos = CONFIG_EFUSE_SN_POS;	// offset of the first byte for sn address
+	int ret;
+
+	memset(buf, 0, sizeof(buf));
+
+	ret = efuse_read_usr(buf, size, &pos);
+	if (ret < 0) {
+		memset(buf, 0, sizeof(buf));
+		printf("read serial from efuse failed\n");
+		return -EINVAL;
+	}
+
+	printf("serial:%s(from efuse)\n", buf);
+	env_set("serial", buf);
+
+	return 0;
+}
+#endif
+
 static void get_chipid(void)
 {
 	int i;
@@ -100,13 +125,18 @@ static void get_chipid(void)
 		printf("get chip id error\n");
 	}
 
-	printf("serial:%s(from chipid)\n", buf);
-
 	env_set("chipid", buf);
-	env_set("serial", buf);
+
+	if (!env_get("serial")) {
+		printf("serial:%s(from chipid)\n", buf);
+		env_set("serial", buf);
+	}
 }
 
 void get_board_serial(void)
 {
-        get_chipid();
+#if defined(CONFIG_EFUSE_SN)
+	get_efuse_serial();
+#endif
+	get_chipid();
 }

@@ -12,11 +12,11 @@
 #include <dm/device-internal.h>
 #include <dm/uclass-internal.h>
 #include "eth_internal.h"
-#include <amlogic/keyunify.h>
 #include <amlogic/cpu_id.h>
 #if defined MAC_ADDR_NEW
 #include <asm/arch/register.h>
 #endif
+#include <asm/arch/efuse.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -460,49 +460,35 @@ static int eth_pre_unbind(struct udevice *dev)
 	return 0;
 }
 
+#if defined(CONFIG_EFUSE_MAC)
 static int eth_get_efuse_mac(struct udevice *dev)
 {
-#ifndef CONFIG_UNIFY_KEY_MANAGE
-	debug("\nWarning: %s MAC addresses is not from dtb\n",
-				dev->name);
-	return -1;
-#else
-#define MAC_MAX_LEN	17
-	int i = 0;
-	int err = 0, exist = 0;
-	ssize_t keysize = 0;
-	const char* seedNum = "0x1234";
-	unsigned char buf[MAC_MAX_LEN+1] = {0};
 	struct eth_pdata *pdata = dev->platdata;
+	char buf[CONFIG_EFUSE_MAC_LEN];	// MAC address buffer
+	loff_t pos = CONFIG_EFUSE_MAC_POS;	// offset of the first byte for MAC address
+	int ret;
 
-	err = key_unify_init(seedNum, NULL);
-	if (err)
-		return err;
-
-	err = key_unify_query_exist("mac", &exist);
-	if (err || (!exist))
-		return -EEXIST;
-
-	err = key_unify_query_size("mac", &keysize);
-	if (err)
-		return err;
-
-	if (keysize != MAC_MAX_LEN) {
+	ret = efuse_read_usr(buf, sizeof(buf), &pos);
+	if (ret < 0) {
+		memset(buf, 0, sizeof(buf));
 		return -EINVAL;
 	}
 
-	err = key_unify_read("mac", buf, keysize);
-	if (err)
-		return err;
+	printf("MACADDR: %s(from efuse)\n", buf);
 
-	for (i=0; i<6; i++) {
-		buf[i*3 + 2] = '\0';
-		pdata->enetaddr[i] = simple_strtoul((char *)&buf[i*3], NULL, 16);
+	int i;
+	char s[3];
+	char *p = buf;
+	for (i = 0; i < 6; i++) {
+		s[0] = *p++;
+		s[1] = *p++;
+		s[2] = 0;
+		pdata->enetaddr[i] = simple_strtoul(s, NULL, 16);
 	}
 
-	return key_unify_uninit();
-#endif
+	return 0;
 }
+#endif
 
 static char env_str[32];
 static int eth_post_probe(struct udevice *dev)
@@ -545,7 +531,10 @@ static int eth_post_probe(struct udevice *dev)
 	if (eth_get_ops(dev)->read_rom_hwaddr)
 		eth_get_ops(dev)->read_rom_hwaddr(dev);
 
+#if defined(CONFIG_EFUSE_MAC)
 	eth_get_efuse_mac(dev);
+#endif
+
 	if (is_valid_ethaddr(pdata->enetaddr)) {
 		sprintf((char *)env_str, "%02x:%02x:%02x:%02x:%02x:%02x", pdata->enetaddr[0],
 					pdata->enetaddr[1], pdata->enetaddr[2], pdata->enetaddr[3],

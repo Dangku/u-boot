@@ -182,7 +182,7 @@
 	CONFIG_EXTRA_HDMI_ENV_SETTINGS \
         "initargs="\
             "rootfstype=ext4 rw loglevel=8 console=tty1 console=ttyS0,921600 no_console_suspend earlycon=aml-uart,0xfe078000 fsck.mode=force fsck.repair=yes net.ifnames=0 "\
-            "board=${board} boot_source=${boot_source} mac=${ethaddr} serial=${serial} systemd.machine_id=${serial} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
+            "board=${board} boot_source=${boot_source} mac=${ethaddr} serial=${serial} systemd.machine_id=${chipid} scsi_mod.scan=async xhci_hcd.quirks=0x800000 "\
             "\0"\
         "storeargs_base=" \
             "get_bootloaderversion;" \
@@ -418,7 +418,20 @@
     #define CONFIG_NETMASK         255.255.255.0
 #endif /* (CONFIG_CMD_NET) */
 
-#define MAC_ADDR_NEW  1
+#if defined(CONFIG_EFUSE)
+#define CONFIG_EFUSE_MAC	1
+#define CONFIG_EFUSE_SN		1
+#endif
+#define MAC_ADDR_NEW  1		/*mac from SYSCTRL_SEC_STATUS_REG18 */
+
+#if defined(CONFIG_EFUSE_MAC)
+ #define CONFIG_EFUSE_MAC_POS	0
+ #define CONFIG_EFUSE_MAC_LEN	12
+#endif
+#if defined(CONFIG_EFUSE_SN)
+ #define CONFIG_EFUSE_SN_POS	36
+ #define CONFIG_EFUSE_SN_LEN		16
+#endif
 
 /* other devices */
 #define CONFIG_SHA1 1
