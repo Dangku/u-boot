@@ -669,10 +669,10 @@ void board_set_dtb(void)
 
 		if (board_is_bpi_cm4io()) {
 			printf("BPI: io board is bpi cm4io\n");
-			setenv("fdtfile", "bananapi_cm4.dtb");
+			setenv("fdtfile", "bananapi_cm4io.dtb");
 		} else if(board_is_rpi_cm4io()) {
 			printf("BPI: io board is rpi cm4io\n");
-			setenv("fdtfile", "bananapi_cm4_rpi.dtb");
+			setenv("fdtfile", "raspberrypi_cm4io.dtb");
 		}
 	}
 }
