@@ -29,12 +29,12 @@
 
 static inline void ext4fs_sb_free_inodes_inc(struct ext2_sblock *sb)
 {
-       sb->free_inodes = cpu_to_le32(le32_to_cpu(sb->free_inodes) + 1);
+	sb->free_inodes = cpu_to_le32(le32_to_cpu(sb->free_inodes) + 1);
 }
 
 static inline void ext4fs_sb_free_blocks_inc(struct ext2_sblock *sb)
 {
-       sb->free_blocks = cpu_to_le32(le32_to_cpu(sb->free_blocks) + 1);
+	sb->free_blocks = cpu_to_le32(le32_to_cpu(sb->free_blocks) + 1);
 }
 
 static inline void ext4fs_bg_free_inodes_inc
